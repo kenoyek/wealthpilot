@@ -5,7 +5,7 @@ The website is deployed at https://wealthpilot-sand.vercel.app. The real owner e
 ## Production resources
 
 - Vercel project: `wealthpilot`, `prj_S96Tc0y5Ann9xvxuNnyQvGnoYgdw`, Node 24.
-- Deployment: `dpl_3bmz14zQK1d1yQN8E86Q6nrgwSpY`, READY, production, source commit `1dc51ee`. Initial enrollment release: `dpl_29m5sVzH7CYreJD3UNFBvdf84ivy`.
+- Deployment: `dpl_CpcgXw38TEqP7WLVgajiRiMExs89`, READY, production, source commit `c3f9649`; includes the owner-only Android test APK download. The prior owner-activation release was `dpl_3bmz14zQK1d1yQN8E86Q6nrgwSpY`. Initial enrollment release: `dpl_29m5sVzH7CYreJD3UNFBvdf84ivy`.
 - Neon project: existing `Wealth Pilot`, `steep-star-32189891`, AWS US East 2.
 - Branch/database: existing `production`, `br-flat-sky-b5iwhifi`, `neondb`.
 - Native Better Auth and Data API use the same endpoint/database. Broad automatic public-schema grants were disabled; only the reviewed financial grants/RLS are applied.
