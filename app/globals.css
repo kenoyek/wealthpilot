@@ -718,6 +718,9 @@ footer {
   aside {
     width: 100%;
     position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
     padding: 16px;
     border-right: 0;
     border-bottom: 1px solid var(--line);
@@ -726,22 +729,34 @@ footer {
     font-size: 21px;
   }
   .nav-label,
-  .sidebar-note,
-  aside form {
+  .sidebar-note {
     display: none;
   }
-  nav {
-    flex-direction: row;
-    overflow: auto;
+  .sidebar-signout {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .sidebar-signout .signout {
+    margin: 0;
+    min-height: 44px;
+    padding: 8px;
+  }
+  aside nav {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    overflow: visible;
     margin-top: 15px;
     gap: 4px;
   }
-  nav a {
+  aside nav a {
     flex-direction: column;
     gap: 4px;
     font-size: 9px;
     padding: 8px;
-    min-width: 64px;
+    min-width: 0;
+    min-height: 52px;
+    justify-content: center;
   }
   nav svg {
     width: 17px;

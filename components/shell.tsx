@@ -59,7 +59,7 @@ export default function Shell({
           <span className="dot" /> A clearer financial future
           <p>Small steps. Lasting progress.</p>
         </div>
-        <form action={signout}>
+        <form action={signout} className="sidebar-signout">
           <button className="signout">
             <LogOut size={17} /> Sign out
           </button>

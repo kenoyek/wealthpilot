@@ -41,4 +41,26 @@ test("new users receive a guided private workspace and isolated accounts", async
   await expect(page).toHaveURL(/dashboard/);
   await expect(page.getByText("Ada everyday", { exact: true })).toHaveCount(0);
   await expect(page.getByText("₦0.00", { exact: true }).first()).toBeVisible();
+  for (const width of [320, 390, 650]) {
+    await page.setViewportSize({ width, height: 740 });
+    for (const control of [
+      page.getByRole("link", { name: "Settings", exact: true }),
+      page.getByRole("button", { name: "Sign out", exact: true }),
+    ]) {
+      await expect(control).toBeInViewport({ ratio: 1 });
+      const box = await control.boundingBox();
+      expect(box!.height).toBeGreaterThanOrEqual(44);
+      expect(box!.x).toBeGreaterThanOrEqual(0);
+      expect(box!.x + box!.width).toBeLessThanOrEqual(width);
+    }
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true);
+  }
+  await page.getByRole("link", { name: "Settings", exact: true }).click();
+  await expect(page).toHaveURL(/settings/);
+  await page.getByRole("button", { name: "Sign out", exact: true }).click();
+  await expect(page).toHaveURL(/login/);
 });
