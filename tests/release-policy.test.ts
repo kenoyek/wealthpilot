@@ -55,6 +55,36 @@ describe("private release policy", () => {
 describe("Neon deployment configuration checks", () => {
   it("accepts a matching hosted configuration without claiming provider readiness", () =>
     expect(productionProblems(example)).toEqual([]));
+  it("accepts matching Neon-managed tech hostnames and rejects lookalikes", () => {
+    expect(
+      productionProblems({
+        ...example,
+        NEON_AUTH_BASE_URL: example.NEON_AUTH_BASE_URL.replace(
+          ".neon.build",
+          ".neon.tech",
+        ),
+        NEON_DATA_API_URL: example.NEON_DATA_API_URL.replace(
+          ".neon.build",
+          ".neon.tech",
+        ),
+      }),
+    ).toEqual([]);
+    for (const suffix of [
+      ".neon.tech.attacker.test",
+      ".neonXtech",
+      ".neon.tech.",
+    ]) {
+      expect(
+        productionProblems({
+          ...example,
+          NEON_AUTH_BASE_URL: example.NEON_AUTH_BASE_URL.replace(
+            ".neon.build",
+            suffix,
+          ),
+        }).length,
+      ).toBeGreaterThan(0);
+    }
+  });
   it("rejects missing settings and local bindings", () => {
     expect(productionProblems({})).toHaveLength(5);
     expect(

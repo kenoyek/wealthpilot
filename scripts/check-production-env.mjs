@@ -19,7 +19,9 @@ export function productionProblems(env) {
       const url = new URL(env[name] || "");
       if (
         url.protocol !== "https:" ||
-        !url.hostname.endsWith(".neon.build") ||
+        !/^ep-[a-z0-9-]+\.(neonauth|apirest)\.(?:c-\d+\.)?[a-z0-9-]+\.aws\.neon\.(?:build|tech)$/.test(
+          url.hostname,
+        ) ||
         !url.hostname.includes(marker) ||
         !url.pathname.endsWith(path) ||
         url.username ||

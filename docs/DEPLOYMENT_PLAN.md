@@ -2,7 +2,7 @@
 
 Selected by the owner: Vercel hosting, Neon instead of Supabase, and access for the sole owner. The owner's address is stored in environment configuration, not committed to this repository.
 
-Status: preparation and local validation. No Vercel deployment or hosted Neon project has been created or verified in this task. No APK or AAB has been built.
+Status: preparation and local validation. A Vercel project has been created and the existing Neon project inspected; no app deployment or hosted Auth/Data API validation has completed. See DEPLOYMENT_STATUS.md for current progress. No APK or AAB has been built.
 
 ## What changed
 
@@ -12,14 +12,11 @@ Status: preparation and local validation. No Vercel deployment or hosted Neon pr
 - `npm run neon:render` produces an ignored, reviewable `neon/generated.sql` bundle for a **fresh dedicated branch**. It preserves financial migration logic, adapting only `auth.users` foreign keys, the UID accessor and the anonymous role name. It does not overwrite `neon_auth` tables or copy local users/test data. Do not run the fresh-branch bundle against an existing application database; inspect migration history and prepare an incremental plan first.
 - `vercel.json` runs `npm run check:production` before the normal build. `.vercelignore` excludes local env files, dependency/build caches and tool binaries. Provider management credentials must never be deployed as app environment variables.
 
-## Required access — currently blocked
+## Required access
 
-The workspace has no authenticated Vercel or Neon management access. Read-only checks to the management APIs were denied by the environment network policy before any credential could be used. The environment draft now declares:
+Vercel and Neon management credentials are configured and their read-only API checks pass. The remaining network restriction affects the selected Neon database/Auth/Data API hosts and release hostname. Exact additions are saved in the environment draft; review/save and publish settings to activate them. Current provider resources and remaining checks are recorded in DEPLOYMENT_STATUS.md.
 
-- VERCEL_TOKEN, sent only to api.vercel.com, for project/environment/deployment operations.
-- NEON_API_KEY, sent only to console.neon.tech, for the dedicated Neon project and configuration.
-
-Enter values securely in environment settings, never chat or source files. The owner email requirement is already saved with the provided suggested value. Apply the environment changes before retrying the affected operations. Saving a draft does not supply tokens, apply network policy or deploy the app. No Supabase production credential is required.
+Keep VERCEL_TOKEN scoped to api.vercel.com and NEON_API_KEY scoped to console.neon.tech. Never put their values in chat, source, or application runtime variables. No Supabase production credential is required.
 
 ## Production configuration
 
@@ -35,7 +32,7 @@ Set these on the Vercel production and private preview deployment scopes:
 
 Generate and store the cookie secret securely during deployment; a proxy-secret placeholder is not a usable local signing key. Do not set legacy NEXT_PUBLIC_SUPABASE variables on Vercel. No runtime database administrator password or service-role key is needed: the Data API validates the user's Neon JWT.
 
-The preflight checks the documented `*.neon.build` endpoint format. If the selected project uses older/custom URLs, review and test their format before adjusting validation. Configuration validation alone does not verify provider permissions, authentication or hosted financial behavior.
+The preflight checks the documented matching Neon-managed `*.neon.build` and `*.neon.tech` endpoint formats. If the selected project uses older/custom URLs, review and test their format before adjusting validation. Configuration validation alone does not verify provider permissions, authentication or hosted financial behavior.
 
 ## Release procedure after access is supplied
 
