@@ -1,25 +1,38 @@
-# Private Neon release preparation — 2026-10-26
+# Private Neon release — 2026-10-26
 
-Selected target: Vercel + Neon Auth/Data API, sole-owner access. The Vercel project is created, but no deployment or Android package has been built. The existing Neon project was inspected without changing its data or Auth settings.
+The website is deployed at https://wealthpilot-sand.vercel.app. Owner enrollment and email verification are available; financial access remains locked until the real verified owner is bound. No APK/AAB has been built.
 
-## Verified locally
+## Production resources
 
-- 40 unit tests passed, including fail-closed private access and production configuration checks.
-- 28 existing PostgreSQL integration tests passed.
-- Five reported Neon SQL compatibility-contract tests passed (four child checks plus parent): all financial migrations apply without Supabase Auth schema; provider subjects map to internal UUIDs; exact postings/reserves work; unbound and anonymous actors are denied. This runs on a separate disposable local database with an emulated JWT-sub accessor, not a live Neon project.
-- Three production-build browser journeys passed. Existing money/planning workflows pass through the new shared Data API adapter on the local fixture. Private-release tests permit the verified configured owner, hide signup, and deny another otherwise-valid authenticated user access to records and CSV exports.
-- Frozen npm installation, production build, type checking, lint and formatting checks passed. Production dependency audit reports zero known vulnerabilities after replacing the Neon SDKs' vulnerable Zod 4.x pins with the compatible patched root version.
+- Vercel project: `wealthpilot`, `prj_S96Tc0y5Ann9xvxuNnyQvGnoYgdw`, Node 24.
+- Deployment: `dpl_29m5sVzH7CYreJD3UNFBvdf84ivy`, READY, production, source commit `5c0d2e4`.
+- Neon project: existing `Wealth Pilot`, `steep-star-32189891`, AWS US East 2.
+- Branch/database: existing `production`, `br-flat-sky-b5iwhifi`, `neondb`.
+- Native Better Auth and Data API use the same endpoint/database. Broad automatic public-schema grants were disabled; only the reviewed financial grants/RLS are applied.
+- All 11 source financial migrations plus the Neon bootstrap were rendered. The full 156-statement bundle successfully executed inside a deliberate rollback validation, then committed to the inspected empty application database. No existing financial records were overwritten; no local test users or data were imported.
 
-## Remaining deployment prerequisites
+## Verified
 
-Management credentials now work. The existing Neon project "Wealth Pilot" (`steep-star-32189891`, production branch `br-flat-sky-b5iwhifi`) has Managed Better Auth enabled for `neondb`, but no Data API. The existing database schema/data have not yet been inspected because runtime egress policy blocks its exact host. No schema migration, identity binding, signup or Auth configuration change was performed.
+- Vercel completed the production configuration preflight and build.
+- The real HTTPS login responds 200. Dashboard and CSV export redirect unauthenticated requests to login. Auth admin and public signup proxy routes return 403. `nosniff` security header is present.
+- Anonymous direct Data API reads/identity RPC requests are rejected for missing authentication.
+- All public application tables have RLS. API roles cannot bind the owner. Application account and owner-binding tables were empty after schema deployment.
+- A real Chromium mobile browser check passed: the login renders without script errors or horizontal overflow, and enrollment with a non-owner address is rejected before account creation.
+- Email verification is required using OTP. Localhost Auth access is disabled. The exact production origin is trusted.
+- 41 unit tests, type checking, lint and a local production build passed after adding owner enrollment/verification. Earlier regression evidence remains: 28 local financial DB tests, five local Neon SQL contract checks and three local browser journeys. Those earlier tests do not establish hosted authenticated workflows.
 
-Created Vercel project `wealthpilot` (`prj_S96Tc0y5Ann9xvxuNnyQvGnoYgdw`) using Node 24. The reserved domain is `wealthpilot-sand.vercel.app`; it is not a verified running app. Configured private-release mode, the selected owner email and an encrypted, randomly generated cookie-signing secret for production and previews. Management credentials were not copied into app variables. Neon runtime URLs remain unset until the Data API is provisioned and validated.
+## Owner activation still required
 
-The production preflight now accepts matching Neon-managed `.neon.tech` endpoints in addition to `.neon.build`, while rejecting custom/lookalike hosts. Unit tests, lint and type checking passed after this adjustment.
+The owner must open the production login page, enter their configured email and chosen password, choose **Set up owner account**, and enter the emailed six-digit code under **Verify email**. Passwords and codes belong only on the HTTPS site, never chat.
 
-The environment draft adds exact selected Neon SQL/Auth/Data API hosts, official documentation/API-spec hosts and the reserved Vercel hostname to the existing allowlist. Review/save and publish environment settings to activate that network change, then retry the blocked read-only checks. Saving the draft alone does not activate egress or deploy the app.
+The temporary `WEALTHPILOT_OWNER_SETUP=true` permits the app's server action to enroll only the configured owner address. General signup through the app's Auth proxy remains blocked, and unbound identities cannot access financial data. Provider signup is temporarily enabled so this first account can be created; after verification, disable it with the provider management API and disable the app setup flag, then deploy the final locked configuration.
 
-Next: inspect existing schemas and real owner state; select an isolated staging branch; enable Data API with automatic broad grants disabled; apply reviewed schema only where safe; verify/bind the actual owner; configure trusted origins and production auth settings; then test hosted authentication/RLS/financial behavior before deploying production. Never guess or mark an unverified owner as verified, and never run local fixture tests against production.
+Before owner binding, query the actual provider account by the exact configured email and require `emailVerified=true`. Use its real subject in a parameterized privileged `app_private.bind_owner` call. Never invent a subject, use the email as the subject, or mark an unverified account verified. No owner identity had been bound at the time of this deployment.
 
-See DEPLOYMENT_PLAN.md for the concrete sequence and Android constraints. The current deliverable remains a responsive web app; APK/AAB packaging is separate mobile work.
+Authenticated hosted login/session, financial workflows, recovery and cross-user JWT/RLS checks remain unverified until the owner completes enrollment. Fixture-creating local tests must never target production. No production financial test records were created.
+
+## Recovery and remaining limits
+
+Neon's existing restore history is six hours (21,600 seconds), as read from the project API; no recovery drill or external backup was completed. Do not assume longer retention. Re-deploy a reviewed known-good source/configuration for application rollback; do not blindly reverse ledger migrations. The initial application deployment has no earlier production version to roll back to.
+
+Shared Neon OTP email is suitable for this initial private onboarding but has provider limits; custom SMTP is still recommended before wider production use. Public-launch privacy/deletion/legal workflows, full abuse controls, MFA/reauthentication, recovery drills and broader security/load checks remain outstanding. Android packaging is separate Phase 6 work.

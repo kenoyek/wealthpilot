@@ -2,7 +2,7 @@
 
 Selected by the owner: Vercel hosting, Neon instead of Supabase, and access for the sole owner. The owner's address is stored in environment configuration, not committed to this repository.
 
-Status: preparation and local validation. A Vercel project has been created and the existing Neon project inspected; no app deployment or hosted Auth/Data API validation has completed. See DEPLOYMENT_STATUS.md for current progress. No APK or AAB has been built.
+Status: the private website is deployed at https://wealthpilot-sand.vercel.app. Hosted schema and unauthenticated access checks pass. The real owner must finish signup/email verification before privileged owner binding and authenticated workflow validation. See DEPLOYMENT_STATUS.md for the exact deployment and outstanding checks. No APK or AAB has been built.
 
 ## What changed
 
@@ -14,7 +14,7 @@ Status: preparation and local validation. A Vercel project has been created and 
 
 ## Required access
 
-Vercel and Neon management credentials are configured and their read-only API checks pass. The remaining network restriction affects the selected Neon database/Auth/Data API hosts and release hostname. Exact additions are saved in the environment draft; review/save and publish settings to activate them. Current provider resources and remaining checks are recorded in DEPLOYMENT_STATUS.md.
+Vercel and Neon management credentials are configured and their read-only API checks pass. The selected Neon database/Auth/Data API hosts and production hostname are reachable after the saved network changes were activated. Current provider resources and remaining checks are recorded in DEPLOYMENT_STATUS.md.
 
 Keep VERCEL_TOKEN scoped to api.vercel.com and NEON_API_KEY scoped to console.neon.tech. Never put their values in chat, source, or application runtime variables. No Supabase production credential is required.
 
