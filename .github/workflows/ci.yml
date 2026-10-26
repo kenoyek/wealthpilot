@@ -1,0 +1,25 @@
+name: Quality and financial isolation
+on: [push, pull_request]
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run tools:install
+      - run: npm run db:start > /tmp/supabase-start.log 2>&1
+      - run: npm run env:local
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run test:db
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+      - if: always()
+        run: node scripts/supabase.mjs stop

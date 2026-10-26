@@ -1,0 +1,76 @@
+import { z } from "zod";
+import { fileURLToPath } from "node:url";
+import { resolve } from "node:path";
+/** @param {Record<string,string|undefined>} env */
+export function productionProblems(env) {
+  const issues = [];
+  if (env.WEALTHPILOT_PRIVATE_RELEASE !== "true")
+    issues.push(
+      "Set WEALTHPILOT_PRIVATE_RELEASE=true for this private release.",
+    );
+  if (!z.email().safeParse(env.WEALTHPILOT_OWNER_EMAIL?.trim()).success)
+    issues.push("Set a valid WEALTHPILOT_OWNER_EMAIL.");
+  const hosts = [];
+  for (const [name, marker, path] of [
+    ["NEON_AUTH_BASE_URL", ".neonauth.", "/auth"],
+    ["NEON_DATA_API_URL", ".apirest.", "/rest/v1"],
+  ]) {
+    try {
+      const url = new URL(env[name] || "");
+      if (
+        url.protocol !== "https:" ||
+        !url.hostname.endsWith(".neon.build") ||
+        !url.hostname.includes(marker) ||
+        !url.pathname.endsWith(path) ||
+        url.username ||
+        url.password ||
+        url.port ||
+        url.search ||
+        url.hash
+      )
+        throw new Error();
+      hosts.push({
+        prefix: url.hostname.split(marker)[0],
+        region: url.hostname.split(marker)[1],
+        database: url.pathname.slice(0, -path.length),
+      });
+    } catch {
+      issues.push(
+        "Set the hosted " +
+          name +
+          " copied from the same Neon branch. Local and unreviewed custom endpoints are rejected.",
+      );
+    }
+  }
+  if (
+    hosts.length === 2 &&
+    (hosts[0].prefix !== hosts[1].prefix ||
+      hosts[0].region !== hosts[1].region ||
+      hosts[0].database !== hosts[1].database)
+  )
+    issues.push(
+      "Neon Auth and Data API must target the same endpoint, region and database.",
+    );
+  if (!env.NEON_AUTH_COOKIE_SECRET || env.NEON_AUTH_COOKIE_SECRET.length < 32)
+    issues.push(
+      "Set an actual randomly generated Neon Auth cookie secret of at least 32 characters.",
+    );
+  if (env.NEXT_PUBLIC_SUPABASE_URL || env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY)
+    issues.push(
+      "Do not configure legacy local Supabase bindings on the Neon production deployment.",
+    );
+  return issues;
+}
+if (
+  process.argv[1] &&
+  resolve(process.argv[1]) === fileURLToPath(import.meta.url)
+) {
+  const issues = productionProblems(process.env);
+  if (issues.length) {
+    issues.forEach((s) => console.error(s));
+    process.exitCode = 1;
+  } else
+    console.log(
+      "Private Neon configuration checks passed. Owner provisioning, hosted Auth/RLS and release smoke tests remain required.",
+    );
+}

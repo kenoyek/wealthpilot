@@ -1,0 +1,2 @@
+-- Opening adjustments are not cash flow, including their correcting reversals.
+create or replace view public.journal with(security_invoker=true) as select e.*,l.id as line_id,l.account_id,l.bucket,l.amount::text as amount,parent.kind as related_kind from public.entries e join public.lines l on l.entry_id=e.id left join public.entries parent on parent.id=e.related_entry and parent.owner_id=e.owner_id;
