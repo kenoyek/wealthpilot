@@ -2,7 +2,7 @@
 
 Selected by the owner: Vercel hosting, Neon instead of Supabase, and access for the sole owner. The owner's address is stored in environment configuration, not committed to this repository.
 
-Status: the private website is deployed at https://wealthpilot-sand.vercel.app. Hosted schema and unauthenticated access checks pass. The real owner must finish signup/email verification before privileged owner binding and authenticated workflow validation. See DEPLOYMENT_STATUS.md for the exact deployment and outstanding checks. No APK or AAB has been built.
+Status: the private website is deployed at https://wealthpilot-sand.vercel.app. Hosted schema and unauthenticated access checks pass. The real owner has verified their email and the actual subject is bound. Provider signup and temporary enrollment are disabled. Owner dashboard confirmation and authenticated financial workflow validation remain outstanding. See DEPLOYMENT_STATUS.md for the exact deployment and outstanding checks. No APK or AAB has been built.
 
 ## What changed
 

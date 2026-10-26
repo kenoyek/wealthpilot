@@ -1,11 +1,11 @@
 # Private Neon release — 2026-10-26
 
-The website is deployed at https://wealthpilot-sand.vercel.app. Owner enrollment and email verification are available; financial access remains locked until the real verified owner is bound. No APK/AAB has been built.
+The website is deployed at https://wealthpilot-sand.vercel.app. The real owner email is verified and its provider subject is bound to the application identity. New provider signups are disabled; temporary enrollment is disabled in the final production configuration. No APK/AAB has been built.
 
 ## Production resources
 
 - Vercel project: `wealthpilot`, `prj_S96Tc0y5Ann9xvxuNnyQvGnoYgdw`, Node 24.
-- Deployment: `dpl_29m5sVzH7CYreJD3UNFBvdf84ivy`, READY, production, source commit `5c0d2e4`.
+- Deployment: `dpl_3bmz14zQK1d1yQN8E86Q6nrgwSpY`, READY, production, source commit `1dc51ee`. Initial enrollment release: `dpl_29m5sVzH7CYreJD3UNFBvdf84ivy`.
 - Neon project: existing `Wealth Pilot`, `steep-star-32189891`, AWS US East 2.
 - Branch/database: existing `production`, `br-flat-sky-b5iwhifi`, `neondb`.
 - Native Better Auth and Data API use the same endpoint/database. Broad automatic public-schema grants were disabled; only the reviewed financial grants/RLS are applied.
@@ -21,18 +21,16 @@ The website is deployed at https://wealthpilot-sand.vercel.app. Owner enrollment
 - Email verification is required using OTP. Localhost Auth access is disabled. The exact production origin is trusted.
 - 41 unit tests, type checking, lint and a local production build passed after adding owner enrollment/verification. Earlier regression evidence remains: 28 local financial DB tests, five local Neon SQL contract checks and three local browser journeys. Those earlier tests do not establish hosted authenticated workflows.
 
-## Owner activation still required
+## Owner activation
 
-The owner must open the production login page, enter their configured email and chosen password, choose **Set up owner account**, and enter the emailed six-digit code under **Verify email**. Passwords and codes belong only on the HTTPS site, never chat.
+The owner completed email verification. The provider record was independently checked for the exact configured email and `emailVerified=true`; its actual subject was then bound with a parameterized privileged `app_private.bind_owner` call. A subsequent join confirmed exactly one verified bound owner. No password, OTP, user session token or provider signing key was collected or extracted.
 
-The temporary `WEALTHPILOT_OWNER_SETUP=true` permits the app's server action to enroll only the configured owner address. General signup through the app's Auth proxy remains blocked, and unbound identities cannot access financial data. Provider signup is temporarily enabled so this first account can be created; after verification, disable it with the provider management API and disable the app setup flag, then deploy the final locked configuration.
+Provider `disable_sign_up=true` is confirmed. Vercel production `WEALTHPILOT_OWNER_SETUP=false` is configured. The final deployment is READY, and the real HTTPS login responds 200 with the setup button absent. General signup/admin routes remain blocked independently of that button.
 
-Before owner binding, query the actual provider account by the exact configured email and require `emailVerified=true`. Use its real subject in a parameterized privileged `app_private.bind_owner` call. Never invent a subject, use the email as the subject, or mark an unverified account verified. No owner identity had been bound at the time of this deployment.
-
-Authenticated hosted login/session, financial workflows, recovery and cross-user JWT/RLS checks remain unverified until the owner completes enrollment. Fixture-creating local tests must never target production. No production financial test records were created.
+The final live Chromium mobile check confirmed setup is absent, non-owner sign-in is denied, and no browser errors or horizontal overflow occur. The owner has been asked to sign in on the production site and confirm the dashboard opens. Authenticated hosted financial workflows, recovery and cross-user JWT/RLS tests remain unverified by the agent. Fixture-creating local tests must never target production. No production financial test records were created.
 
 ## Recovery and remaining limits
 
-Neon's existing restore history is six hours (21,600 seconds), as read from the project API; no recovery drill or external backup was completed. Do not assume longer retention. Re-deploy a reviewed known-good source/configuration for application rollback; do not blindly reverse ledger migrations. The initial application deployment has no earlier production version to roll back to.
+Neon's existing restore history is six hours (21,600 seconds), as read from the project API; no recovery drill or external backup was completed. Do not assume longer retention. Re-deploy a reviewed known-good source/configuration for application rollback; do not blindly reverse ledger migrations. The earlier enrollment deployment must not be used for rollback without keeping provider signup closed and the setup flag false.
 
 Shared Neon OTP email is suitable for this initial private onboarding but has provider limits; custom SMTP is still recommended before wider production use. Public-launch privacy/deletion/legal workflows, full abuse controls, MFA/reauthentication, recovery drills and broader security/load checks remain outstanding. Android packaging is separate Phase 6 work.
