@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { session } from "./session";
 import { monthBounds } from "./money";
 export interface Account {
@@ -30,7 +31,7 @@ export interface Line {
   amount: string;
   created_at: string;
 }
-export async function baseData() {
+export const baseData = cache(async function baseData() {
   const { client, user } = await session();
   const [a, c, p] = await Promise.all([
     client.from("account_balances").select("*").order("created_at"),
@@ -58,7 +59,7 @@ export async function baseData() {
     categories: (c.data || []) as Category[],
     profile: p.data,
   };
-}
+});
 export function localMonth(timezone = "Africa/Lagos") {
   return localDate(timezone).slice(0, 7);
 }

@@ -1,3 +1,5 @@
+> Current web release: verified multi-user registration and Android pause are documented in [WEB_UPGRADE.md](WEB_UPGRADE.md). The sole-owner/Supabase proposal below is historical where it conflicts.
+
 # Security model
 
 ## Threats and boundaries

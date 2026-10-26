@@ -33,8 +33,8 @@ export default function Install() {
           </>
         ) : (
           <p>
-            The Android package is being prepared. You can install the website
-            below now.
+            Android downloads are paused while we focus on the web experience.
+            Add the website to your home screen below.
           </p>
         )}
         <h2>Install the website</h2>

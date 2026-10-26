@@ -70,3 +70,7 @@ Architecture and roadmap are in [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATIO
 Next.js uses its supported TypeScript compiler API mode because its detached CLI checker returned empty output in this sandbox. Type checking remains enabled during builds and as a separate command.
 
 Android private builds and signing are documented in [android/README.md](android/README.md). Use `npm run android:tools`, `npm run android:sdk` and `npm run android:build` for a local test APK. The mobile status is in [docs/ANDROID_STATUS.md](docs/ANDROID_STATUS.md). Web home-screen installation instructions are available at `/install`.
+
+## Multi-user web release
+
+See [docs/WEB_UPGRADE.md](docs/WEB_UPGRADE.md) for the current public-registration architecture, UX/performance changes, migration evidence and remaining operational limits. Production opens verified registration only with both `WEALTHPILOT_PUBLIC_SIGNUP=true` and `WEALTHPILOT_PRIVATE_RELEASE=false`; previews remain private. New verified users receive isolated workspaces automatically. Run `python3 scripts/deploy-vercel.py --web-only` for web deployment with Android downloads paused. No APK rebuild is required.

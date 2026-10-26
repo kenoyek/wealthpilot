@@ -4,7 +4,7 @@ import { ArrowUpRight, ArrowDownLeft, Wallet, TrendingUp } from "lucide-react";
 import Shell, { Empty } from "@/components/shell";
 import { Filters } from "@/components/filters";
 import { journal, localMonth } from "@/lib/data";
-import { planningData } from "@/lib/planning-data";
+import { cashData } from "@/lib/planning-data";
 import { formatMoney, sum } from "@/lib/money";
 import { totals, categorySpending, cashMovement } from "@/lib/summary";
 export default async function Dashboard({
@@ -12,7 +12,7 @@ export default async function Dashboard({
 }: {
   searchParams: Promise<{ month?: string; scope?: string }>;
 }) {
-  const { accounts, categories, profile, positions } = await planningData();
+  const { accounts, categories, profile, positions } = await cashData();
   const q = await searchParams;
   const month = q.month || localMonth(profile?.timezone);
   const scope = ["personal", "business"].includes(q.scope || "")
@@ -44,27 +44,76 @@ export default async function Dashboard({
     .filter((c) => c.value.gt(0))
     .sort((a, b) => b.value.comparedTo(a.value));
   const max = expenses[0]?.value || new Decimal(1);
+  const steps = [
+    {
+      done: Boolean(profile?.onboarded),
+      title: "Make it yours",
+      copy: "Name, currency and timezone",
+      href: "/onboarding",
+    },
+    {
+      done: accounts.length > 0,
+      title: "Add your first account",
+      copy: "Start with your actual balance",
+      href: "/accounts",
+    },
+    {
+      done: rows.some((r) => !["opening", "reversal"].includes(r.kind)),
+      title: "Record this month’s activity",
+      copy: "Income received or money spent",
+      href: "/transactions#new",
+    },
+  ];
   return (
     <Shell
       active="/dashboard"
       title="Financial overview"
       subtitle="A little clarity today. A stronger tomorrow."
     >
-      {!profile?.onboarded && (
-        <div className="welcome">
-          <div>
-            <p className="eyebrow">WELCOME TO YOUR NEXT CHAPTER</p>
-            <h2>Your financial story starts here.</h2>
-            <p>
-              Add an account and record your first transaction. You can fill in
-              the rest as you go.
-            </p>
+      {steps.some((s) => !s.done) && (
+        <section className="setup-guide panel">
+          <div className="section-heading">
+            <div>
+              <p className="eyebrow">A STRONG START</p>
+              <h2>
+                {profile?.display_name
+                  ? `Welcome, ${profile.display_name}.`
+                  : "Your financial story starts here."}
+              </h2>
+              <p>Three small steps toward a clearer picture.</p>
+            </div>
+            <span className="pill">
+              {steps.filter((s) => s.done).length} of 3 complete
+            </span>
           </div>
-          <Link className="button" href="/settings">
-            Set your preferences <ArrowUpRight size={16} />
-          </Link>
-        </div>
+          <div className="setup-steps">
+            {steps.map((s, i) => (
+              <Link
+                key={s.title}
+                href={s.href}
+                className={s.done ? "setup-step done" : "setup-step"}
+              >
+                <span>{s.done ? "✓" : i + 1}</span>
+                <div>
+                  <b>{s.title}</b>
+                  <small>{s.copy}</small>
+                </div>
+                <ArrowUpRight size={16} />
+              </Link>
+            ))}
+          </div>
+        </section>
       )}
+      <div className="quick-actions" aria-label="Quick actions">
+        <Link href="/transactions?entry=income#new">
+          <ArrowUpRight size={17} /> Record income
+        </Link>
+        <Link href="/transactions?entry=expense#new">
+          <ArrowDownLeft size={17} /> Add expense
+        </Link>
+        <Link href="/planning/goals">Set a goal ↗</Link>
+        <Link href="/reports">Explore reports ↗</Link>
+      </div>
       <Filters month={month} scope={scope} />
       <section className="welcome">
         <div>
@@ -194,7 +243,7 @@ export default async function Dashboard({
           )}
           <p className="muted fine">
             Account balances are not a safe-to-spend estimate. Bills and
-            reserves are not yet tracked.
+            reserves are shown separately in your cash plan.
           </p>
         </section>
       </div>

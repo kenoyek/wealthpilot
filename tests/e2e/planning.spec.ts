@@ -41,6 +41,16 @@ test("reserve, allocate income, pay bill and split debt payment", async ({
     await form
       .getByRole("button", { name: "Add category", exact: true })
       .click();
+    await page
+      .locator("form")
+      .filter({
+        has: page.getByRole("button", {
+          name: "Save transaction",
+          exact: true,
+        }),
+      })
+      .getByRole("combobox", { name: "Type", exact: true })
+      .selectOption(kind);
     await expect(
       page
         .locator('select[name="category"] option')
@@ -163,6 +173,9 @@ test("reserve, allocate income, pay bill and split debt payment", async ({
   await bill
     .getByRole("combobox", { name: "Frequency", exact: true })
     .selectOption("once");
+  await bill
+    .getByRole("combobox", { name: "Expense category", exact: true })
+    .selectOption({ label: "Utilities · personal" });
   await bill
     .getByRole("button", { name: "Save commitment", exact: true })
     .click();

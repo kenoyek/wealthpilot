@@ -4,12 +4,18 @@ import { resolve } from "node:path";
 /** @param {Record<string,string|undefined>} env */
 export function productionProblems(env) {
   const issues = [];
-  if (env.WEALTHPILOT_PRIVATE_RELEASE !== "true")
+  const publicMode =
+    env.WEALTHPILOT_PUBLIC_SIGNUP === "true" &&
+    env.WEALTHPILOT_PRIVATE_RELEASE === "false";
+  if (!publicMode && env.WEALTHPILOT_PRIVATE_RELEASE !== "true")
     issues.push(
-      "Set WEALTHPILOT_PRIVATE_RELEASE=true for this private release.",
+      "Explicitly configure private release or public verified registration.",
     );
-  if (!z.email().safeParse(env.WEALTHPILOT_OWNER_EMAIL?.trim()).success)
-    issues.push("Set a valid WEALTHPILOT_OWNER_EMAIL.");
+  if (
+    !publicMode &&
+    !z.email().safeParse(env.WEALTHPILOT_OWNER_EMAIL?.trim()).success
+  )
+    issues.push("Set a valid WEALTHPILOT_OWNER_EMAIL for private mode.");
   const hosts = [];
   for (const [name, marker, path] of [
     ["NEON_AUTH_BASE_URL", ".neonauth.", "/auth"],
@@ -73,6 +79,6 @@ if (
     process.exitCode = 1;
   } else
     console.log(
-      "Private Neon configuration checks passed. Owner provisioning, hosted Auth/RLS and release smoke tests remain required.",
+      "Neon configuration checks passed. Hosted authentication and data isolation must be verified.",
     );
 }

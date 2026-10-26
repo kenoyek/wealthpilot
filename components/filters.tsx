@@ -2,10 +2,12 @@ export function Filters({
   month,
   scope,
   search = false,
+  query = "",
 }: {
   month: string;
   scope: string;
   search?: boolean;
+  query?: string;
 }) {
   return (
     <form className="filters" method="get">
@@ -30,7 +32,11 @@ export function Filters({
       {search && (
         <label>
           Search
-          <input name="q" placeholder="Description or category" />
+          <input
+            name="q"
+            defaultValue={query}
+            placeholder="Description or category"
+          />
         </label>
       )}
       <button className="secondary">Apply filters</button>

@@ -5,6 +5,7 @@ import { z } from "zod";
 import { headers } from "next/headers";
 import { db } from "@/lib/backend/server";
 import { neonAuth, neonConfigured } from "@/lib/backend/neon-auth";
+import { authRequestAllowed } from "@/lib/auth-requests";
 import { session } from "@/lib/session";
 import { amount, monthBounds } from "@/lib/money";
 import {
@@ -25,10 +26,14 @@ function refresh() {
   revalidatePath("/", "layout");
 }
 export async function authenticate(f: FormData) {
-  const email = field(f, "email"),
+  const email = field(f, "email").trim().toLowerCase(),
     password = field(f, "password"),
     mode = field(f, "mode");
-  if (!z.email().safeParse(email).success || password.length < 12)
+  if (
+    !z.email().safeParse(email).success ||
+    password.length < 12 ||
+    password.length > 128
+  )
     fail(
       "/login",
       "Use a valid email and a password of at least 12 characters.",
@@ -41,6 +46,8 @@ export async function authenticate(f: FormData) {
       (mode === "signup" && !(neonConfigured() && ownerSetupAllowed(email))))
   )
     fail("/login", privateSignInMessage);
+  if (!(await authRequestAllowed(mode, email)))
+    fail("/login", "Too many attempts. Please try again in 15 minutes.");
   const client = await db();
   const origin = (await headers()).get("origin") || "http://127.0.0.1:3000";
   const result =
@@ -54,7 +61,11 @@ export async function authenticate(f: FormData) {
   if (result.error)
     fail(
       "/login",
-      privateRelease() ? privateSignInMessage : result.error.message,
+      privateRelease()
+        ? privateSignInMessage
+        : mode === "signup"
+          ? "Unable to create an account. Check your details, or sign in if you already registered."
+          : "Unable to sign in. Check your credentials and verify your email.",
     );
   if (mode === "signup" && neonConfigured())
     redirect(
@@ -74,19 +85,22 @@ export async function signout() {
   redirect("/login");
 }
 export async function recover(f: FormData) {
-  const email = field(f, "email");
+  const email = field(f, "email").trim().toLowerCase();
   if (!z.email().safeParse(email).success)
     fail("/login", "Enter a valid email.");
   if (!ownerEmailAllowed(email))
     redirect(
       "/login?notice=If%20that%20account%20exists%2C%20a%20recovery%20email%20has%20been%20sent.",
     );
+  if (!(await authRequestAllowed("recover", email)))
+    fail("/login", "Too many attempts. Please try again in 15 minutes.");
   const client = await db();
   const origin = (await headers()).get("origin") || "http://127.0.0.1:3000";
   const { error } = await client.auth.resetPasswordForEmail(email, {
     redirectTo: origin + "/auth/confirm",
   });
-  if (error) fail("/login", error.message);
+  if (error)
+    console.error("Recovery request failed", { code: "PROVIDER_RECOVERY" });
   redirect(
     "/login?notice=If%20that%20account%20exists%2C%20a%20recovery%20email%20has%20been%20sent.",
   );
@@ -109,6 +123,7 @@ export async function preferences(f: FormData) {
     new Intl.DateTimeFormat("en", { timeZone: timezone }).format();
     const { error } = await client.from("profiles").upsert({
       id: user.id,
+      display_name: z.string().trim().max(60).parse(field(f, "display_name")),
       currency: field(f, "currency"),
       timezone,
       onboarded: true,
@@ -157,10 +172,11 @@ export async function addCategory(f: FormData) {
     scope: field(f, "scope"),
   });
   if (error) fail("/transactions", error.message);
-  refresh();
-  redirect("/transactions");
+  revalidatePath("/transactions");
 }
-export async function postEntry(f: FormData) {
+export async function postEntry(
+  f: FormData,
+): Promise<{ error?: string; notice?: string }> {
   const { client } = await session();
   try {
     const kind = field(f, "kind");
@@ -185,10 +201,10 @@ export async function postEntry(f: FormData) {
     });
     if (error) throw new Error(error.message);
   } catch (e) {
-    fail("/transactions", message(e));
+    return { error: message(e).slice(0, 180) };
   }
   refresh();
-  redirect("/transactions?notice=Transaction%20recorded.");
+  return { notice: "Transaction recorded." };
 }
 export async function reverseEntry(f: FormData) {
   const { client } = await session();
@@ -266,6 +282,10 @@ export async function ownerVerification(f: FormData) {
     !ownerEmailAllowed(email)
   )
     fail("/login", "Unable to verify this account.");
+  if (!["send", "verify"].includes(field(f, "mode")))
+    fail("/login", "Invalid verification request.");
+  if (!(await authRequestAllowed("verify-" + field(f, "mode"), email)))
+    fail("/login", "Too many attempts. Please try again in 15 minutes.");
   const auth = neonAuth();
   const otp = field(f, "otp").trim();
   if (field(f, "mode") === "send") {
@@ -274,7 +294,7 @@ export async function ownerVerification(f: FormData) {
       type: "email-verification",
     });
     redirect(
-      "/login?notice=If%20the%20owner%20account%20exists%2C%20a%20verification%20code%20has%20been%20sent.",
+      "/login?notice=If%20the%20account%20exists%2C%20a%20verification%20code%20has%20been%20sent.",
     );
   }
   if (!/^\d{6}$/.test(otp))
@@ -282,7 +302,27 @@ export async function ownerVerification(f: FormData) {
   const result = await auth.emailOtp.verifyEmail({ email, otp });
   if (result.error)
     fail("/login", "Verification code expired or invalid. Request a new code.");
-  redirect(
-    "/login?notice=Email%20verified.%20Owner%20activation%20can%20now%20be%20completed.",
-  );
+  redirect("/onboarding");
+}
+
+export async function finishOnboarding(f: FormData) {
+  const { client } = await session();
+  const { localDate } = await import("@/lib/data");
+  try {
+    const timezone = field(f, "timezone");
+    new Intl.DateTimeFormat("en", { timeZone: timezone }).format();
+    const { error } = await client.rpc("complete_onboarding", {
+      p_name: z.string().trim().min(1).max(60).parse(field(f, "display_name")),
+      p_currency: field(f, "currency"),
+      p_timezone: timezone,
+      p_account: field(f, "account_name").trim(),
+      p_opening: field(f, "opening") || "0",
+      p_date: localDate(timezone),
+    });
+    if (error) throw new Error(error.message);
+  } catch (e) {
+    fail("/onboarding", message(e));
+  }
+  refresh();
+  redirect("/dashboard?welcome=1");
 }

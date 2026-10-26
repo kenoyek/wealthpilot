@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { createClient } from "@neondatabase/neon-js";
 import {
   db as localDb,
@@ -59,7 +60,7 @@ function problem(e: unknown): ErrorInfo {
       }
     : null;
 }
-export async function db() {
+export const db = cache(async function db() {
   if (!configured()) throw new Error("Backend is not configured.");
   if (!usesNeon()) {
     const local = await localDb();
@@ -81,7 +82,24 @@ export async function db() {
       },
     });
     const auth: AppAuth = {
-      getUser: () => local.auth.getUser(),
+      getUser: async () => {
+        const r = await local.auth.getUser();
+        if (
+          r.data.user &&
+          sessionAllowed(
+            r.data.user.email,
+            Boolean(r.data.user.email_confirmed_at),
+          )
+        ) {
+          const init = await data.rpc("initialize_workspace");
+          if (init.error)
+            return {
+              data: { user: null },
+              error: { message: "Unable to prepare your workspace." },
+            };
+        }
+        return r;
+      },
       signInWithPassword: (p) => local.auth.signInWithPassword(p),
       signUp: (p) => local.auth.signUp(p),
       signOut: () => local.auth.signOut(),
@@ -94,13 +112,16 @@ export async function db() {
     return { auth, from: data.from.bind(data), rpc: data.rpc.bind(data) };
   }
   const authServer = neonAuth();
+  let tokenRequest: Promise<string | null> | undefined;
   const data = createClient({
     dataApi: {
       url: process.env.NEON_DATA_API_URL!,
-      getToken: async () => {
-        const r = await authServer.token();
-        if (r.error) return null;
-        return r.data?.token || null;
+      getToken: () => {
+        tokenRequest ||= (async () => {
+          const r = await authServer.token();
+          return r.error ? null : r.data?.token || null;
+        })();
+        return tokenRequest;
       },
     },
   });
@@ -120,7 +141,7 @@ export async function db() {
         return {
           data: { user: null },
           error: {
-            message: "The Neon owner identity has not been provisioned.",
+            message: "Unable to prepare your verified workspace. Please retry.",
           },
         };
       return {
@@ -182,4 +203,4 @@ export async function db() {
     },
   };
   return { auth, from: data.from.bind(data), rpc: data.rpc.bind(data) };
-}
+});

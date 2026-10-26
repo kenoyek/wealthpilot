@@ -1,11 +1,6 @@
+import { CommitmentFunding } from "@/components/commitment-funding";
 import Shell, { Notice, Empty } from "@/components/shell";
-import {
-  PlanningNav,
-  RequestKey,
-  AccountSelect,
-  ReserveSelect,
-  PaymentUndo,
-} from "@/components/planning";
+import { PlanningNav, RequestKey, PaymentUndo } from "@/components/planning";
 import { SubmitButton } from "@/components/submit-button";
 import { planningData } from "@/lib/planning-data";
 import { localDate } from "@/lib/data";
@@ -64,7 +59,11 @@ export default async function Commitments({
                 Plan (optional)
                 <input name="plan" maxLength={100} />
               </label>
-              <AccountSelect accounts={accounts} />
+              <CommitmentFunding
+                accounts={accounts}
+                categories={categories}
+                goals={goals}
+              />
               <label>
                 Amount per billing cycle
                 <input name="amount" inputMode="decimal" required />
@@ -83,17 +82,6 @@ export default async function Commitments({
                 Next due date
                 <input name="date" type="date" required defaultValue={today} />
               </label>
-              <label>
-                Expense category
-                <select name="category">
-                  {expenses.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name} · {c.scope}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <ReserveSelect goals={goals} />
               <label>
                 Importance
                 <select name="essential">

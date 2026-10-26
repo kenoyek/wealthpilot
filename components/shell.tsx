@@ -44,6 +44,7 @@ export default function Shell({
         <nav aria-label="Main navigation">
           {nav.map(([url, label, Icon]) => (
             <Link
+              prefetch={false}
               key={url}
               href={url}
               aria-current={active === url ? "page" : undefined}
@@ -69,7 +70,7 @@ export default function Shell({
           <span className="breadcrumb">
             Workspace <span>/ {title}</span>
           </span>
-          <Link href="/transactions#new" className="button">
+          <Link href="/transactions#new" className="button" prefetch={false}>
             <Plus size={16} /> Add transaction
           </Link>
         </header>

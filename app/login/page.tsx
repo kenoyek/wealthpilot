@@ -5,6 +5,8 @@ import {
 } from "@/lib/release-policy";
 import { authenticate, recover, ownerVerification } from "../actions";
 import { configured, usesNeon } from "@/lib/backend/server";
+import Link from "next/link";
+import { SubmitButton } from "@/components/submit-button";
 import { redirect } from "next/navigation";
 export default async function Login({
   searchParams,
@@ -14,8 +16,13 @@ export default async function Login({
   if (!configured()) redirect("/setup");
   const q = await searchParams;
   return (
-    <main className="auth">
-      <div className="brand">◈ WealthPilot</div>
+    <main className="auth auth-enhanced">
+      <Link className="brand" href="/">
+        ◈ WealthPilot
+      </Link>
+      <p className="auth-trust">
+        A private workspace for every financial journey.
+      </p>
       <section className="panel">
         <p className="eyebrow">YOUR MONEY. YOUR FINANCIAL FUTURE.</p>
         <h1>Make room for what matters.</h1>
@@ -51,23 +58,34 @@ export default async function Login({
               name="password"
               type="password"
               minLength={12}
+              maxLength={128}
               autoComplete="current-password"
               required
             />
           </label>
           <div className="actions">
-            <button name="mode" value="signin">
+            <SubmitButton name="mode" value="signin" pendingLabel="Signing in…">
               Sign in
-            </button>
+            </SubmitButton>
             {usesNeon() && ownerSetupAllowed(releaseSettings().ownerEmail) && (
-              <button name="mode" value="signup" className="secondary">
+              <SubmitButton
+                name="mode"
+                value="signup"
+                secondary
+                pendingLabel="Creating account…"
+              >
                 Set up owner account
-              </button>
+              </SubmitButton>
             )}
             {!privateRelease() && (
-              <button name="mode" value="signup" className="secondary">
+              <SubmitButton
+                name="mode"
+                value="signup"
+                secondary
+                pendingLabel="Creating account…"
+              >
                 Create account
-              </button>
+              </SubmitButton>
             )}
           </div>
         </form>
@@ -78,7 +96,7 @@ export default async function Login({
               Recovery email
               <input name="email" type="email" required />
             </label>
-            <button className="secondary">Send recovery email</button>
+            <SubmitButton secondary>Send recovery email</SubmitButton>
           </form>
         </details>
         {usesNeon() && (
@@ -86,7 +104,7 @@ export default async function Login({
             <summary>Verify email</summary>
             <form action={ownerVerification}>
               <label>
-                Owner email
+                Verification email
                 <input
                   name="email"
                   type="email"
@@ -118,7 +136,7 @@ export default async function Login({
         <small>
           {privateRelease()
             ? "Private release. Access is limited to the verified owner account; public registration is disabled in this app."
-            : "Your financial records stay private to your account."}
+            : "Create your account, verify your email, and get your own private workspace. Your records are never shared with other users."}
         </small>
       </section>
     </main>

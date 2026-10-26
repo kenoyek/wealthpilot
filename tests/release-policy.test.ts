@@ -18,6 +18,18 @@ const example = {
   NEON_AUTH_COOKIE_SECRET: "synthetic-test-cookie-key-not-for-deployment",
 };
 describe("private release policy", () => {
+  it("opens production only with both explicit public flags and requires verified sessions", () => {
+    const publicMode = {
+      vercelEnv: "production",
+      privateRelease: "false",
+      publicSignup: "true",
+    };
+    expect(privateRelease(publicMode)).toBe(false);
+    expect(ownerEmailAllowed("new@example.test", publicMode)).toBe(true);
+    expect(sessionAllowed("new@example.test", false, publicMode)).toBe(false);
+    expect(sessionAllowed("new@example.test", true, publicMode)).toBe(true);
+    expect(privateRelease({ ...publicMode, vercelEnv: "preview" })).toBe(true);
+  });
   it("allows temporary enrollment only for the configured owner when explicitly enabled", () => {
     expect(
       ownerSetupAllowed("owner@example.test", {
@@ -72,6 +84,20 @@ describe("private release policy", () => {
   });
 });
 describe("Neon deployment configuration checks", () => {
+  it("accepts explicitly enabled public registration without a sole-owner email", () => {
+    expect(
+      productionProblems({
+        ...example,
+        WEALTHPILOT_PRIVATE_RELEASE: "false",
+        WEALTHPILOT_PUBLIC_SIGNUP: "true",
+        WEALTHPILOT_OWNER_EMAIL: "",
+      }),
+    ).toEqual([]);
+    expect(
+      productionProblems({ ...example, WEALTHPILOT_PRIVATE_RELEASE: "false" })
+        .length,
+    ).toBeGreaterThan(0);
+  });
   it("accepts a matching hosted configuration without claiming provider readiness", () =>
     expect(productionProblems(example)).toEqual([]));
   it("accepts matching Neon-managed tech hostnames and rejects lookalikes", () => {

@@ -1,3 +1,4 @@
+import { SubmitButton } from "@/components/submit-button";
 import Shell, { Notice, Empty } from "@/components/shell";
 import { baseData, localDate } from "@/lib/data";
 import { currencies, formatMoney } from "@/lib/money";
@@ -105,7 +106,7 @@ export default async function Accounts({
               Enter a nonnegative opening asset balance. Credit and loan
               accounts are planned for a later phase.
             </p>
-            <button>Create account</button>
+            <SubmitButton>Create account</SubmitButton>
           </form>
         </section>
       </div>

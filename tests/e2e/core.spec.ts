@@ -36,6 +36,7 @@ test("private account to reconciled financial report", async ({ page }) => {
   const form = page
     .locator("form")
     .filter({ has: page.getByRole("button", { name: "Save transaction" }) });
+  const firstKey = await form.locator('input[name="key"]').inputValue();
   await form.getByLabel("Amount", { exact: true }).fill("30.00");
   await form
     .getByLabel("Category (income / expense)")
@@ -53,6 +54,23 @@ test("private account to reconciled financial report", async ({ page }) => {
   await form.getByRole("button", { name: "Save transaction" }).click();
   await expect(page.getByText("Transaction recorded.")).toBeVisible();
   await expect(page.getByText("Weekly shop", { exact: true })).toBeVisible();
+  await expect(form.getByLabel("Amount", { exact: true })).toHaveValue("");
+  await expect(form.locator('input[name="key"]')).not.toHaveValue(firstKey);
+  const retryKey = await form.locator('input[name="key"]').inputValue();
+  await form
+    .getByRole("combobox", { name: "Type", exact: true })
+    .selectOption("refund");
+  await form.getByLabel("Amount", { exact: true }).fill("10");
+  await form
+    .getByLabel("Original expense (refunds only)")
+    .fill(crypto.randomUUID());
+  await form
+    .getByRole("button", { name: "Save transaction", exact: true })
+    .click();
+  await expect(form.locator('p.error[role="alert"]')).toBeVisible();
+  await expect(form.getByLabel("Amount", { exact: true })).toHaveValue("10");
+  await expect(form.locator('input[name="key"]')).toHaveValue(retryKey);
+
   await page.getByRole("link", { name: "Overview", exact: true }).click();
   await expect(
     page.getByText("₦970.00", { exact: true }).first(),

@@ -1,3 +1,5 @@
+> Current web release: verified multi-user registration and Android pause are documented in [WEB_UPGRADE.md](WEB_UPGRADE.md). The sole-owner/Supabase proposal below is historical where it conflicts.
+
 # Private production release: Vercel + Neon
 
 Selected by the owner: Vercel hosting, Neon instead of Supabase, and access for the sole owner. The owner's address is stored in environment configuration, not committed to this repository.

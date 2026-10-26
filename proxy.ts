@@ -8,6 +8,7 @@ export async function proxy(request: NextRequest) {
     if (
       [
         "/dashboard",
+        "/onboarding",
         "/accounts",
         "/transactions",
         "/budgets",

@@ -22,6 +22,12 @@ export function renderNeonMigrations() {
     readFileSync(resolve(root, "neon/bootstrap.sql"), "utf8") +
     "\n" +
     blocks.join("\n") +
+    "\n" +
+    readdirSync(resolve(root, "neon/incremental"))
+      .filter((f) => f.endsWith(".sql"))
+      .sort()
+      .map((f) => readFileSync(resolve(root, "neon/incremental", f), "utf8"))
+      .join("\n") +
     "\nCOMMIT;\n"
   );
 }
@@ -32,6 +38,6 @@ if (
   const target = resolve(root, "neon/generated.sql");
   writeFileSync(target, renderNeonMigrations(), { mode: 0o600 });
   console.log(
-    "Rendered fresh-branch Neon migration bundle; owner binding is a separate privileged step.",
+    "Rendered fresh-database Neon bundle with verified-user workspace provisioning. Never replay on an existing database.",
   );
 }

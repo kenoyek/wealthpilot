@@ -29,6 +29,15 @@ export default async function Settings({
           </p>
           <form action={preferences}>
             <label>
+              Display name
+              <input
+                name="display_name"
+                autoComplete="given-name"
+                maxLength={60}
+                defaultValue={profile?.display_name || ""}
+              />
+            </label>
+            <label>
               Reporting currency
               <select name="currency" defaultValue={profile?.currency || "NGN"}>
                 {currencies.map((c) => (

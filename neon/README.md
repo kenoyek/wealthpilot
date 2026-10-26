@@ -1,13 +1,9 @@
-# Neon production schema
+# Neon schema and incremental updates
 
-Run `npm run neon:render` to produce `neon/generated.sql` for review. This is a fresh-branch transaction, not an incremental migration command and not an automatic production deployment. Apply it only to a dedicated reviewed Neon branch with Managed Better Auth and Data API enabled. Turn off broad automatic public-schema grants and retain the explicit application grants/RLS.
+Production uses Native Neon Auth and the Data API. Every verified provider subject maps to its own internal UUID in the protected `app_private.identities` registry. `ensure_application_user()` takes no owner/email parameter: it checks the native JWT subject against the provider's verified user registry, provisions the requesting identity idempotently, and initializes only that workspace. All original financial owner filters/RLS/composite foreign keys remain.
 
-The renderer uses the existing financial SQL as source and maps:
+`npm run neon:render` produces ignored `neon/generated.sql` for a **fresh database only**, combining the historical financial migrations and reviewed Neon increments. It maps auth.users/auth.uid()/anon to the Neon identity bridge. The historical bootstrap's singleton constraint is removed by the multi-user increment; manual owner binding is retired. Do not execute this fresh bundle against the existing production database.
 
-- `auth.users` foreign keys to `app_private.identities`;
-- `auth.uid()` to `app_private.current_user_id()`;
-- Supabase's `anon` role name to Neon's `anonymous` role.
+For the existing deployment use `scripts/apply-neon-updates.py`: it applies only reviewed new additive files transactionally, records hashes/versions and verifies existing identity UUID preservation. `--validate` deliberately rolls the whole transaction back. Read docs/WEB_UPGRADE.md for exact prerequisites and evidence. It does not create a staging environment or copy local accounts into production.
 
-The native `auth.user_id()` accessor supplies the verified Neon JWT subject. A privileged administrator binds the real verified owner using parameterized `SELECT app_private.bind_owner($1)`. The internal UUID is generated independently of the provider's subject format. The binding helper is not executable by API roles, and changing a populated owner binding is a separate reviewed operation. The runtime `ensure_application_user` RPC returns only the bound caller's internal UUID. No `neon_auth` records are rewritten.
-
-`npm run test:neon-contract` creates a separate disposable database inside the local fixture's PostgreSQL container, applies every rendered migration, exercises accounting/ownership and drops only that temporary database. It emulates the JWT-sub accessor; it does **not** validate a live Neon issuer, Auth service, cookie flow or Data API deployment. Production schema and Auth checks must run on the actual selected hosted project after access is supplied.
+`npm run test:neon-contract` uses a separate disposable local database. It emulates native JWT-sub and provider-user verification, applies all schema files, and tests multi-user initialization, isolation, exact balances, reserves and rejection of anonymous/unverified actors. This does not validate a real hosted issuer or send email.

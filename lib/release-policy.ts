@@ -4,6 +4,7 @@ export interface ReleaseSettings {
   privateRelease?: string;
   ownerEmail?: string;
   ownerSetup?: string;
+  publicSignup?: string;
 }
 export function releaseSettings(): ReleaseSettings {
   return {
@@ -11,9 +12,13 @@ export function releaseSettings(): ReleaseSettings {
     privateRelease: process.env.WEALTHPILOT_PRIVATE_RELEASE,
     ownerEmail: process.env.WEALTHPILOT_OWNER_EMAIL,
     ownerSetup: process.env.WEALTHPILOT_OWNER_SETUP,
+    publicSignup: process.env.WEALTHPILOT_PUBLIC_SIGNUP,
   };
 }
 export function privateRelease(settings: ReleaseSettings = releaseSettings()) {
+  if (settings.vercelEnv === "preview") return true;
+  if (settings.publicSignup === "true" && settings.privateRelease === "false")
+    return false;
   return (
     settings.privateRelease === "true" ||
     settings.vercelEnv === "production" ||
@@ -39,7 +44,12 @@ export function sessionAllowed(
 ) {
   return (
     ownerEmailAllowed(email, settings) &&
-    (!privateRelease(settings) || confirmed)
+    (!(
+      privateRelease(settings) ||
+      settings.vercelEnv === "production" ||
+      settings.publicSignup === "true"
+    ) ||
+      confirmed)
   );
 }
 export const privateSignInMessage =

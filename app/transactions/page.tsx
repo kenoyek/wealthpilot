@@ -1,14 +1,11 @@
+import { TransactionForm } from "@/components/transaction-form";
+import Link from "next/link";
 import Shell, { Notice, Empty } from "@/components/shell";
 import { Filters } from "@/components/filters";
 import { baseData, journal, localMonth, localDate } from "@/lib/data";
 import { formatMoney } from "@/lib/money";
 import Decimal from "decimal.js";
-import {
-  postEntry,
-  addCategory,
-  reverseEntry,
-  renameCategory,
-} from "../actions";
+import { addCategory, reverseEntry, renameCategory } from "../actions";
 export default async function Transactions({
   searchParams,
 }: {
@@ -18,6 +15,8 @@ export default async function Transactions({
     q?: string;
     error?: string;
     notice?: string;
+    page?: string;
+    entry?: string;
   }>;
 }) {
   const { accounts, categories, profile } = await baseData();
@@ -42,6 +41,19 @@ export default async function Transactions({
       .toLowerCase()
       .includes((q.q || "").toLowerCase()),
   );
+  const pageSize = 50;
+  const pageCount = Math.max(1, Math.ceil(shown.length / pageSize));
+  const pageNumber = Math.min(
+    pageCount,
+    Math.max(1, Number.isSafeInteger(Number(q.page)) ? Number(q.page) : 1),
+  );
+  const visible = shown.slice(
+    (pageNumber - 1) * pageSize,
+    pageNumber * pageSize,
+  );
+  const pageHref = (page: number) =>
+    "/transactions?" +
+    new URLSearchParams({ month, scope, q: q.q || "", page: String(page) });
   const today = localDate(profile?.timezone);
   const active = accounts.filter((a) => !a.archived);
   return (
@@ -58,84 +70,19 @@ export default async function Transactions({
         {!active.length ? (
           <p>Add an account first, then create a category below.</p>
         ) : (
-          <form action={postEntry}>
-            <input type="hidden" name="key" value={crypto.randomUUID()} />
-            <div className="form-grid">
-              <label>
-                Type
-                <select name="kind">
-                  <option value="expense">Expense</option>
-                  <option value="income">Income</option>
-                  <option value="transfer">Transfer</option>
-                  <option value="refund">Refund</option>
-                </select>
-              </label>
-              <label>
-                Account
-                <select name="account">
-                  {active.map((a) => (
-                    <option key={a.id} value={a.id}>
-                      {a.name} · {a.currency} · {a.scope}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label>
-                Amount
-                <input
-                  name="amount"
-                  inputMode="decimal"
-                  placeholder="0.00"
-                  pattern="[0-9]+(\.[0-9]+)?"
-                  required
-                />
-              </label>
-              <label>
-                Date
-                <input name="date" type="date" defaultValue={today} required />
-              </label>
-              <label>
-                Category (income / expense)
-                <select name="category">
-                  <option value="">Choose category</option>
-                  {categories.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name} · {c.kind} · {c.scope}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label>
-                Destination (transfers only)
-                <select name="destination">
-                  <option value="">Choose account</option>
-                  {active.map((a) => (
-                    <option key={a.id} value={a.id}>
-                      {a.name} · {a.currency}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label>
-                Original expense (refunds only)
-                <input name="related" placeholder="Paste the expense ID" />
-              </label>
-              <label>
-                Description
-                <input
-                  name="description"
-                  maxLength={500}
-                  placeholder="What was it for?"
-                />
-              </label>
-            </div>
-            <p className="muted fine">
-              Transfers support the same currency. For refunds, copy an expense
-              ID from its details below. Unused fields are ignored.
-              Foreign-currency transfers require a later FX workflow.
-            </p>
-            <button>Save transaction</button>
-          </form>
+          <TransactionForm
+            accounts={active}
+            categories={categories}
+            today={today}
+            requestKey={crypto.randomUUID()}
+            initialKind={
+              ["income", "expense", "transfer", "refund"].includes(
+                q.entry || "",
+              )
+                ? q.entry
+                : "expense"
+            }
+          />
         )}
       </details>
       <details className="panel">
@@ -190,7 +137,7 @@ export default async function Transactions({
           <p>No categories yet.</p>
         )}
       </details>
-      <Filters month={month} scope={scope} search />
+      <Filters month={month} scope={scope} search query={q.q || ""} />
       <section className="panel">
         <div className="section-heading">
           <h2>Transaction history</h2>
@@ -209,7 +156,7 @@ export default async function Transactions({
                 </tr>
               </thead>
               <tbody>
-                {shown.map((r) => (
+                {visible.map((r) => (
                   <tr key={r.id}>
                     <td>
                       <b>{r.description || r.kind}</b>
@@ -284,6 +231,23 @@ export default async function Transactions({
           </Empty>
         )}
       </section>
+      {pageCount > 1 && (
+        <nav className="pagination" aria-label="Transaction pages">
+          {pageNumber > 1 && (
+            <Link className="button secondary" href={pageHref(pageNumber - 1)}>
+              ← Previous
+            </Link>
+          )}
+          <span>
+            Page {pageNumber} of {pageCount} · {shown.length} entries
+          </span>
+          {pageNumber < pageCount && (
+            <Link className="button secondary" href={pageHref(pageNumber + 1)}>
+              Next →
+            </Link>
+          )}
+        </nav>
+      )}
     </Shell>
   );
 }

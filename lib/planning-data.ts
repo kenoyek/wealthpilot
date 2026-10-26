@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { baseData } from "./data";
 export interface Goal {
   id: string;
@@ -69,14 +70,7 @@ export async function planningData() {
       throw new Error(
         "Unable to load planning data. Apply pending database migrations.",
       );
-  const positions: Record<string, Position> = {};
-  await Promise.all(
-    base.accounts.map(async (a) => {
-      const r = await base.client.rpc("planning_position", { p_account: a.id });
-      if (r.error) throw new Error("Unable to calculate cash commitments.");
-      positions[a.id] = r.data as Position;
-    }),
-  );
+  const positions = await accountPositions(base.client);
   return {
     ...base,
     goals: g.data as Goal[],
@@ -86,3 +80,16 @@ export async function planningData() {
     positions,
   };
 }
+
+async function accountPositions(
+  client: Awaited<ReturnType<typeof baseData>>["client"],
+) {
+  const r = await client.rpc("planning_positions");
+  if (r.error)
+    throw new Error("Unable to calculate your cash plan. Please retry.");
+  return (r.data || {}) as Record<string, Position>;
+}
+export const cashData = cache(async () => {
+  const base = await baseData();
+  return { ...base, positions: await accountPositions(base.client) };
+});
