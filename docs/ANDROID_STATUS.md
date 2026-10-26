@@ -35,3 +35,5 @@ The owner reported that tapping the original APK did nothing. The original devic
 - Web type checking, lint, build and one Chromium install/download-boundary journey pass; the install page and filename clearly identify 1.0.1-test.
 
 The replacement must still be installed on the owner's affected phone. No claim of physical-device repair is made until the owner confirms it. Server-side financial data, Neon ownership and credentials are unchanged.
+
+Replacement delivery: Vercel `dpl_E1RzVhz7BE7cQMLYimpphpHuNbEU` is READY from source `7427c1a`. The uploaded APK digest matches the locally signature-verified replacement. Live Chromium confirms `/install` advertises `1.0.1-test` and anonymous downloads still redirect to login. The filename is `wealthpilot-1.0.1-test.apk`. The owner was asked to install this in-place update and confirm website launch; physical-device confirmation is pending. The unsigned release bundle was regenerated successfully from the replacement source.
