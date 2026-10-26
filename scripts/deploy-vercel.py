@@ -26,7 +26,7 @@ def main():
         "name": "wealthpilot", "project": PROJECT, "target": "production",
         "files": [{"file": p, "data": base64.b64encode((ROOT / p).read_bytes()).decode(), "encoding": "base64"} for p in paths],
         "projectSettings": {"framework": "nextjs", "installCommand": "npm ci", "buildCommand": "npm run check:production && npm run build"},
-        "meta": {"githubCommitSha": git("rev-parse", "HEAD").decode().strip(), "githubCommitOrg": "kenoyek", "githubCommitRepo": "wealthpilot", "githubCommitRef": "main"},
+        "meta": {"githubCommitSha": git("rev-parse", "HEAD").decode().strip(), "githubCommitOrg": "kenoyek", "githubCommitRepo": "wealthpilot", "githubCommitRef": "main", "wealthpilotApkSha256": hashlib.sha256(apk.read_bytes()).hexdigest()},
     }
     env = api("/v10/projects/" + PROJECT + "/env?upsert=true", [{"key": "WEALTHPILOT_ANDROID_APK_AVAILABLE", "value": "true", "type": "plain", "target": ["production"]}])
     if env.get("failed"): raise SystemExit("Android availability environment update failed; deployment stopped.")

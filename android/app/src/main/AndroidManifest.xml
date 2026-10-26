@@ -17,7 +17,7 @@
         <meta-data android:name="asset_statements" android:resource="@string/asset_statements" />
         <activity android:name="com.google.androidbrowserhelper.trusted.LauncherActivity"
             android:exported="true">
-            <meta-data android:name="android.support.customtabs.trusted.DEFAULT_URL" android:value="https://wealthpilot-sand.vercel.app/login" />
+            <meta-data android:name="android.support.customtabs.trusted.DEFAULT_URL" android:value="https://wealthpilot-sand.vercel.app/dashboard" />
             <meta-data android:name="android.support.customtabs.trusted.STATUS_BAR_COLOR" android:resource="@color/brand" />
             <meta-data android:name="android.support.customtabs.trusted.NAVIGATION_BAR_COLOR" android:resource="@color/background" />
             <meta-data android:name="android.support.customtabs.trusted.FALLBACK_STRATEGY" android:value="customtabs" />
