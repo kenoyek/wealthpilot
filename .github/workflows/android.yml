@@ -20,6 +20,8 @@ jobs:
         run: sdkmanager 'platforms;android-36' 'build-tools;36.0.0' 'platform-tools'
       - name: Build private test APK
         run: npm run android:build
+      - name: Android startup and fallback tests
+        run: npm run android:test
       - name: Android lint
         run: npm run android:lint
       - name: Build unsigned release bundle

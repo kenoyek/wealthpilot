@@ -1,10 +1,12 @@
 # WealthPilot Android
 
-This is an Android Browser Helper launcher for the existing HTTPS app, not a static export or a WebView with a JavaScript bridge. The supported browser owns sign-in cookies, TLS, navigation and downloads. The backend remains Vercel + Neon with the existing verified-owner checks. No database, provider management or user session credentials are embedded in the APK.
+This is a visible Android launcher using AndroidX Custom Tabs for the existing HTTPS app. A normal browser intent is the fallback, and a separate **Open in browser instead** button is always available. It is not a static export or a WebView with a JavaScript bridge. The browser owns sign-in cookies, TLS, navigation and downloads. The backend remains Vercel + Neon with the existing verified-owner checks. No database, provider management or user session credentials are embedded in the APK.
+
+Version 1.0.1 (versionCode 2) replaces the original transparent Browser Helper activity after the owner reported that tapping the app did nothing. The launcher now stays visible when a browser cannot open and shows an actionable error and retry controls. It does not register as a handler for website links, so fallback browser intents cannot resolve back into the launcher. The exact original device-specific cause remains unconfirmed without device logs. Startup/fallback regression tests use Robolectric on Android API 24 and 35; those simulated runtimes are not an emulator or physical device.
 
 ## First private build
 
-The debug package is `com.wealthpilot.app.debug` and is labelled **WealthPilot Test**. It uses a local debug certificate, and is for direct-install testing only. The production website does not trust that debug certificate: Chrome will show its normal Custom Tab toolbar. This is expected. Do not publish a shared/debug signing fingerprint as the release identity.
+The debug package is `com.wealthpilot.app.debug` and is labelled **WealthPilot Test**. It uses a local debug certificate, and is for direct-install testing only. The app uses the browser’s normal toolbar. It does not depend on Trusted Web Activity domain verification to launch. Do not publish a shared/debug signing fingerprint as the release identity.
 
 Requires Android 7+ and an installed compatible browser (current Chrome recommended), network access, and the existing owner account. There is no offline ledger, background sync, push or biometric lock. The app opens the same live site; web releases take effect there without rebuilding Android. Native changes require a new APK.
 
@@ -18,6 +20,7 @@ Node 24, Python 3, network access and about 3 GB free disk are needed. The tool 
 npm run android:tools
 npm run android:sdk
 npm run android:build
+npm run android:test
 npm run android:lint
 npm run android:bundle
 ```
@@ -32,7 +35,7 @@ Outputs:
 
 The manual **Android private test build** GitHub workflow can produce downloadable build artifacts. Each fresh CI debug key differs, so those APKs are not a stable release/update channel. No CI run, Play submission, emulator test or physical device test should be inferred from the workflow file.
 
-## Production signing and trusted full-screen mode
+## Production signing and future domain association
 
 The release application ID is `com.wealthpilot.app`. A permanent app signing key and its secure recoverable backup must be established before distribution. Supply these only through secure signing tooling:
 
@@ -43,7 +46,7 @@ The release application ID is `com.wealthpilot.app`. A permanent app signing key
 
 With all four configured, `node scripts/android.mjs assembleRelease` and `npm run android:bundle` sign release artifacts. A partial configuration fails. Without them, release outputs remain unsigned. With Play App Signing, website association must use the **app signing certificate**, not merely the upload certificate.
 
-Set the public `ANDROID_APP_SHA256_CERTIFICATES` Vercel variable to a comma-separated list of colon-delimited SHA-256 release certificate fingerprints. The website publishes only valid values at `/.well-known/assetlinks.json`, for the fixed release package. With no certificate, it returns `[]` (no trusted Android app). Malformed configuration returns 503 instead of trusting a partial list. The manifest’s HTTPS intent filter and app-side web association both point only to `wealthpilot-sand.vercel.app`.
+Set the public `ANDROID_APP_SHA256_CERTIFICATES` Vercel variable to a comma-separated list of colon-delimited SHA-256 release certificate fingerprints. The website publishes only valid values at `/.well-known/assetlinks.json`, for the fixed release package. With no certificate, it returns `[]` (no trusted Android app). Malformed configuration returns 503 instead of trusting a partial list. This endpoint only prepares a future release association. The current launcher deliberately has no HTTPS intent filter and does not use full-screen TWA mode; configuring a certificate alone does not change that.
 
 Before a release, verify domain association, same-origin login and email recovery links, Android Back behavior, sign-out, CSV export/downloads, keyboard/insets, accessibility, and unavailable-network behavior on real supported devices. Test future signed APK updates with the same key and increasing `versionCode`. Changing production domain requires coordinated web manifest, Android manifest/default URL and associations. The current APK is not a Play Store release.
 

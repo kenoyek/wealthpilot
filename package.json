@@ -26,7 +26,8 @@
     "android:sdk": "node scripts/android.mjs sdk",
     "android:build": "node scripts/android.mjs assembleDebug",
     "android:lint": "node scripts/android.mjs lint",
-    "android:bundle": "node scripts/android.mjs bundleRelease"
+    "android:bundle": "node scripts/android.mjs bundleRelease",
+    "android:test": "node scripts/android.mjs testDebugUnitTest"
   },
   "repository": {
     "type": "git",

@@ -14,6 +14,7 @@ if (
     "bundleRelease",
     "lint",
     "test",
+    "testDebugUnitTest",
   ].includes(task)
 )
   throw new Error("Unsupported Android task.");

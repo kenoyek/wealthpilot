@@ -1,3 +1,9 @@
 <resources>
-    <string name="asset_statements" translatable="false">[{\"relation\":[\"delegate_permission/common.handle_all_urls\"],\"target\":{\"namespace\":\"web\",\"site\":\"https://wealthpilot-sand.vercel.app\"}}]</string>
+    <string name="launch_intro">Your private finances, on the secure WealthPilot website. Internet access and your owner sign-in are required.</string>
+    <string name="open_app">Open WealthPilot</string>
+    <string name="open_browser">Open in browser instead</string>
+    <string name="ready">Ready to open WealthPilot.</string>
+    <string name="opened">WealthPilot opened in your browser. If it did not appear, try Open in browser instead.</string>
+    <string name="browser_unavailable">Unable to open a browser. Install or enable Chrome or another web browser, then try again.</string>
+    <string name="site_address" translatable="false">https://wealthpilot-sand.vercel.app</string>
 </resources>

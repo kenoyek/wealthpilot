@@ -17,6 +17,11 @@ test("mobile installation metadata and private Android download boundary", async
       () => document.documentElement.scrollWidth <= innerWidth,
     ),
   ).toBe(true);
+  if (process.env.WEALTHPILOT_ANDROID_APK_AVAILABLE === "true") {
+    await expect(
+      page.getByText(/Android test build 1\.0\.1-test/),
+    ).toBeVisible();
+  }
   const manifestResponse = await request.get("/manifest.webmanifest");
   expect(manifestResponse.status()).toBe(200);
   const manifest = await manifestResponse.json();

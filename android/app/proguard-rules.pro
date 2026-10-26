@@ -1,1 +1,1 @@
-# Manifest components and Android Browser Helper consumer rules supply the required keeps.
+# Android manifest components and AndroidX consumer rules supply required keeps.

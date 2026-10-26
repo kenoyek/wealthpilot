@@ -1,3 +1,4 @@
+import { androidTestBuild } from "@/lib/android/package";
 import Link from "next/link";
 export default function Install() {
   return (
@@ -13,8 +14,13 @@ export default function Install() {
         {process.env.WEALTHPILOT_ANDROID_APK_AVAILABLE === "true" ? (
           <>
             <p>
-              This private test app opens WealthPilot using Chrome. An internet
-              connection and your owner sign-in are required.
+              Android test build {androidTestBuild.version}. Opens WealthPilot
+              in your browser. An internet connection and your owner sign-in are
+              required.
+            </p>
+            <p>
+              If the app does not open the website automatically, tap Open in
+              browser instead on its launcher screen.
             </p>
             <a className="button" href="/api/android/download">
               Download Android test APK
