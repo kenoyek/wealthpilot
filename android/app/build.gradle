@@ -1,0 +1,52 @@
+plugins { id 'com.android.application' }
+
+def signingNames = ['WEALTHPILOT_ANDROID_KEYSTORE', 'WEALTHPILOT_ANDROID_STORE_PASSWORD', 'WEALTHPILOT_ANDROID_KEY_ALIAS', 'WEALTHPILOT_ANDROID_KEY_PASSWORD']
+def signingValues = signingNames.collect { System.getenv(it) }
+if (signingValues.any { it } && !signingValues.every { it }) {
+    throw new GradleException('Provide all four Android release signing variables, or none for unsigned release builds.')
+}
+android {
+    namespace 'com.wealthpilot.app'
+    compileSdk 36
+    buildToolsVersion '36.0.0'
+    defaultConfig {
+        applicationId 'com.wealthpilot.app'
+        minSdk 24
+        targetSdk 36
+        versionCode 1
+        versionName '1.0.0'
+    }
+    signingConfigs {
+        debug {
+            storeFile rootProject.file('../.tools/android-debug.keystore')
+        }
+        if (signingValues.every { it }) {
+            release {
+                storeFile file(signingValues[0])
+                storePassword signingValues[1]
+                keyAlias signingValues[2]
+                keyPassword signingValues[3]
+            }
+        }
+    }
+    buildTypes {
+        debug {
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            applicationIdSuffix '.debug'
+            versionNameSuffix '-test'
+            resValue 'string', 'app_name', 'WealthPilot Test'
+        }
+        release {
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            resValue 'string', 'app_name', 'WealthPilot'
+            if (signingValues.every { it }) signingConfig signingConfigs.release
+        }
+    }
+}
+dependencies {
+    implementation 'com.google.androidbrowserhelper:androidbrowserhelper:2.7.4'
+}

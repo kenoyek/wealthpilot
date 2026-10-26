@@ -21,7 +21,12 @@
     "format:check": "prettier --check app components lib tests scripts \"*.ts\" \"*.mjs\" \"*.json\"",
     "check:production": "node scripts/check-production-env.mjs",
     "neon:render": "node scripts/render-neon-migrations.mjs",
-    "test:neon-contract": "node --test tests/neon-contract.test.mjs"
+    "test:neon-contract": "node --test tests/neon-contract.test.mjs",
+    "android:tools": "python3 scripts/install-android-tools.py",
+    "android:sdk": "node scripts/android.mjs sdk",
+    "android:build": "node scripts/android.mjs assembleDebug",
+    "android:lint": "node scripts/android.mjs lint",
+    "android:bundle": "node scripts/android.mjs bundleRelease"
   },
   "repository": {
     "type": "git",

@@ -68,3 +68,5 @@ Planning starts at `/planning`; cash-backed contributions are virtual earmarks, 
 Architecture and roadmap are in [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md). The original Phase 0 proposals are retained as the architecture baseline; this README documents actual implemented limits.
 
 Next.js uses its supported TypeScript compiler API mode because its detached CLI checker returned empty output in this sandbox. Type checking remains enabled during builds and as a separate command.
+
+Android private builds and signing are documented in [android/README.md](android/README.md). Use `npm run android:tools`, `npm run android:sdk` and `npm run android:build` for a local test APK. The mobile status is in [docs/ANDROID_STATUS.md](docs/ANDROID_STATUS.md). Web home-screen installation instructions are available at `/install`.

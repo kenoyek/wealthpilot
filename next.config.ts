@@ -1,6 +1,9 @@
 import type { NextConfig } from "next";
 const config: NextConfig = {
   poweredByHeader: false,
+  outputFileTracingIncludes: {
+    "/api/android/download": ["./artifacts/wealthpilot-debug.apk"],
+  },
   experimental: { useTypeScriptCli: false },
   async headers() {
     return [

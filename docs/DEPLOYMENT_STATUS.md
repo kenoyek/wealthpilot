@@ -1,6 +1,6 @@
 # Private Neon release — 2026-10-26
 
-The website is deployed at https://wealthpilot-sand.vercel.app. The real owner email is verified and its provider subject is bound to the application identity. New provider signups are disabled; temporary enrollment is disabled in the final production configuration. No APK/AAB has been built.
+The website is deployed at https://wealthpilot-sand.vercel.app. The real owner email is verified and its provider subject is bound to the application identity. New provider signups are disabled; temporary enrollment is disabled in the final production configuration. Android private test packaging is now implemented; see ANDROID_STATUS.md for artifact and device-validation limits.
 
 ## Production resources
 
@@ -27,7 +27,7 @@ The owner completed email verification. The provider record was independently ch
 
 Provider `disable_sign_up=true` is confirmed. Vercel production `WEALTHPILOT_OWNER_SETUP=false` is configured. The final deployment is READY, and the real HTTPS login responds 200 with the setup button absent. General signup/admin routes remain blocked independently of that button.
 
-The final live Chromium mobile check confirmed setup is absent, non-owner sign-in is denied, and no browser errors or horizontal overflow occur. The owner has been asked to sign in on the production site and confirm the dashboard opens. Authenticated hosted financial workflows, recovery and cross-user JWT/RLS tests remain unverified by the agent. Fixture-creating local tests must never target production. No production financial test records were created.
+The final live Chromium mobile check confirmed setup is absent, non-owner sign-in is denied, and no browser errors or horizontal overflow occur. The owner confirmed that sign-in succeeds and the dashboard opens. Authenticated hosted financial workflows, recovery and cross-user JWT/RLS tests remain unverified by the agent. Fixture-creating local tests must never target production. No production financial test records were created.
 
 ## Recovery and remaining limits
 

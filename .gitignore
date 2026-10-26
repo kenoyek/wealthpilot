@@ -11,3 +11,10 @@ coverage/
 *.tsbuildinfo
 neon/generated.sql
 .env.neon*
+android/.gradle/
+android/**/build/
+android/local.properties
+artifacts/
+*.jks
+*.keystore
+__pycache__/

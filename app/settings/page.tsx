@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { usesNeon } from "@/lib/backend/server";
 import Shell, { Notice } from "@/components/shell";
 import { baseData } from "@/lib/data";
@@ -16,6 +17,9 @@ export default async function Settings({
       subtitle="Make WealthPilot feel at home in your life."
     >
       <Notice {...await searchParams} />
+      <p>
+        <Link href="/install">Install WealthPilot on your phone</Link>
+      </p>
       <div className="two-col">
         <section className="panel">
           <h2>The essentials</h2>
