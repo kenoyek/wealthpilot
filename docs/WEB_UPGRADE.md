@@ -36,3 +36,13 @@ Verified local evidence:
 OTP email currently uses the existing Neon email provider. No custom SMTP configuration, MFA enrollment, recovery drill, external backup service or public compliance review is claimed. The application auth burst limiter is bounded **per process**, not a distributed quota across all Vercel instances; it complements provider controls and is not a claim of comprehensive abuse protection. Large-scale signup traffic needs dedicated email delivery and distributed controls.
 
 The public Neon signup/verification flow must still be exercised by real users on the live hostname; local Auth fixtures and emulated native-subject SQL tests do not prove actual email delivery or hosted JWT behavior for every new user. No password, OTP or session token is collected in chat. No paid plan was purchased, no staging environment created and no Android build performed for this release.
+
+## Production verification
+
+Vercel deployment `dpl_6ciAR3YMKVMfx4sgtYdtkQH3PC3J` is READY from source `cb57058` at https://wealthpilot-sand.vercel.app. Production flags explicitly enable public registration; preview flags retain private mode. Neon confirms signup enabled, email verification required using OTP and auto-sign-in after verification enabled. Shared email provider is confirmed.
+
+Live Chromium checks pass: public home page, Create account control, verification form, signed-out dashboard redirect, no mobile overflow or browser script errors, and Android APK button absent. Local desktop/mobile home-page review found no overflow and the automated WCAG A/AA scan returned no findings (not a full accessibility certification).
+
+Live SQL metadata confirms zero public application tables without RLS, API roles cannot read/insert identities, anonymous users cannot provision identities, and the singleton-owner constraint is absent. The original identity UUID remains unchanged. These are real hosted configuration/permission checks; the limits on actual new-user email/JWT journey validation above still apply.
+
+Deployments default to web-only while Android is paused. The optional `--include-android-apk` deployment switch is reserved for an explicitly resumed Android task; it must not be used to re-enable downloads during routine web work.

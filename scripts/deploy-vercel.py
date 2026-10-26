@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Deploy the committed web source plus the verified private Android artifact."""
+"""Deploy committed web source; include an Android artifact only when explicitly requested."""
 import argparse, base64, hashlib, json, os, pathlib, subprocess, urllib.error, urllib.request
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 PROJECT = os.environ.get("WEALTHPILOT_VERCEL_PROJECT_ID", "prj_S96Tc0y5Ann9xvxuNnyQvGnoYgdw")
@@ -14,7 +14,10 @@ def api(path, payload):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--web-only", action="store_true", help="Pause Android delivery and deploy the web app without APK artifacts")
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument("--web-only", dest="web_only", action="store_true", help="Deploy the web app with Android delivery paused (default)")
+    mode.add_argument("--include-android-apk", dest="web_only", action="store_false", help="Explicitly resume packaging and serving a locally built Android APK")
+    parser.set_defaults(web_only=True)
     args = parser.parse_args()
     if not os.environ.get("VERCEL_TOKEN"): raise SystemExit("VERCEL_TOKEN is required through secure environment settings.")
     if git("status", "--porcelain").strip(): raise SystemExit("Commit source changes before deployment; do not deploy an unreviewable working tree.")
