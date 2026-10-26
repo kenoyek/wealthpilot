@@ -3,6 +3,7 @@ import {
   privateRelease,
   ownerEmailAllowed,
   sessionAllowed,
+  ownerSetupAllowed,
 } from "../lib/release-policy";
 import { productionProblems } from "../scripts/check-production-env.mjs";
 const settings = { vercelEnv: "production", ownerEmail: "owner@example.test" };
@@ -17,6 +18,24 @@ const example = {
   NEON_AUTH_COOKIE_SECRET: "synthetic-test-cookie-key-not-for-deployment",
 };
 describe("private release policy", () => {
+  it("allows temporary enrollment only for the configured owner when explicitly enabled", () => {
+    expect(
+      ownerSetupAllowed("owner@example.test", {
+        ...settings,
+        ownerSetup: "true",
+      }),
+    ).toBe(true);
+    expect(
+      ownerSetupAllowed("other@example.test", {
+        ...settings,
+        ownerSetup: "true",
+      }),
+    ).toBe(false);
+    expect(ownerSetupAllowed("owner@example.test", settings)).toBe(false);
+    expect(
+      ownerSetupAllowed("owner@example.test", { ownerSetup: "true" }),
+    ).toBe(false);
+  });
   it("defaults Vercel production and previews to private, even with an accidental false flag", () => {
     expect(
       privateRelease({ vercelEnv: "production", privateRelease: "false" }),

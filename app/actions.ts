@@ -4,10 +4,12 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { headers } from "next/headers";
 import { db } from "@/lib/backend/server";
+import { neonAuth, neonConfigured } from "@/lib/backend/neon-auth";
 import { session } from "@/lib/session";
 import { amount, monthBounds } from "@/lib/money";
 import {
   privateRelease,
+  ownerSetupAllowed,
   ownerEmailAllowed,
   privateSignInMessage,
 } from "@/lib/release-policy";
@@ -31,7 +33,13 @@ export async function authenticate(f: FormData) {
       "/login",
       "Use a valid email and a password of at least 12 characters.",
     );
-  if (privateRelease() && (mode === "signup" || !ownerEmailAllowed(email)))
+  if (mode !== "signin" && mode !== "signup")
+    fail("/login", privateSignInMessage);
+  if (
+    privateRelease() &&
+    (!ownerEmailAllowed(email) ||
+      (mode === "signup" && !(neonConfigured() && ownerSetupAllowed(email))))
+  )
     fail("/login", privateSignInMessage);
   const client = await db();
   const origin = (await headers()).get("origin") || "http://127.0.0.1:3000";
@@ -47,6 +55,10 @@ export async function authenticate(f: FormData) {
     fail(
       "/login",
       privateRelease() ? privateSignInMessage : result.error.message,
+    );
+  if (mode === "signup" && neonConfigured())
+    redirect(
+      "/login?notice=Check%20your%20email%20for%20a%20verification%20code.%20Use%20Verify%20email%20below.",
     );
   if (mode === "signup" && !result.data.session)
     redirect(
@@ -244,4 +256,33 @@ export async function renameCategory(f: FormData) {
   if (error) fail("/transactions", error.message);
   refresh();
   redirect("/transactions");
+}
+
+export async function ownerVerification(f: FormData) {
+  const email = field(f, "email").trim().toLowerCase();
+  if (
+    !neonConfigured() ||
+    !z.email().safeParse(email).success ||
+    !ownerEmailAllowed(email)
+  )
+    fail("/login", "Unable to verify this account.");
+  const auth = neonAuth();
+  const otp = field(f, "otp").trim();
+  if (field(f, "mode") === "send") {
+    await auth.emailOtp.sendVerificationOtp({
+      email,
+      type: "email-verification",
+    });
+    redirect(
+      "/login?notice=If%20the%20owner%20account%20exists%2C%20a%20verification%20code%20has%20been%20sent.",
+    );
+  }
+  if (!/^\d{6}$/.test(otp))
+    fail("/login", "Enter the six-digit email verification code.");
+  const result = await auth.emailOtp.verifyEmail({ email, otp });
+  if (result.error)
+    fail("/login", "Verification code expired or invalid. Request a new code.");
+  redirect(
+    "/login?notice=Email%20verified.%20Owner%20activation%20can%20now%20be%20completed.",
+  );
 }

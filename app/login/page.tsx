@@ -1,6 +1,10 @@
-import { privateRelease } from "@/lib/release-policy";
-import { authenticate, recover } from "../actions";
-import { configured } from "@/lib/backend/server";
+import {
+  privateRelease,
+  ownerSetupAllowed,
+  releaseSettings,
+} from "@/lib/release-policy";
+import { authenticate, recover, ownerVerification } from "../actions";
+import { configured, usesNeon } from "@/lib/backend/server";
 import { redirect } from "next/navigation";
 export default async function Login({
   searchParams,
@@ -29,6 +33,13 @@ export default async function Login({
             {q.notice}
           </p>
         )}
+        {usesNeon() && ownerSetupAllowed(releaseSettings().ownerEmail) && (
+          <p className="notice">
+            First visit: enter your owner email and choose a password, then
+            select Set up owner account. Verify the emailed code below.
+            Financial access opens after owner activation.
+          </p>
+        )}
         <form action={authenticate}>
           <label>
             Email
@@ -48,6 +59,11 @@ export default async function Login({
             <button name="mode" value="signin">
               Sign in
             </button>
+            {usesNeon() && ownerSetupAllowed(releaseSettings().ownerEmail) && (
+              <button name="mode" value="signup" className="secondary">
+                Set up owner account
+              </button>
+            )}
             {!privateRelease() && (
               <button name="mode" value="signup" className="secondary">
                 Create account
@@ -65,6 +81,40 @@ export default async function Login({
             <button className="secondary">Send recovery email</button>
           </form>
         </details>
+        {usesNeon() && (
+          <details>
+            <summary>Verify email</summary>
+            <form action={ownerVerification}>
+              <label>
+                Owner email
+                <input
+                  name="email"
+                  type="email"
+                  autoComplete="email"
+                  required
+                />
+              </label>
+              <label>
+                Email verification code
+                <input
+                  name="otp"
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  pattern="[0-9]{6}"
+                  maxLength={6}
+                />
+              </label>
+              <div className="actions">
+                <button name="mode" value="verify">
+                  Verify email
+                </button>
+                <button name="mode" value="send" className="secondary">
+                  Send new code
+                </button>
+              </div>
+            </form>
+          </details>
+        )}
         <small>
           {privateRelease()
             ? "Private release. Access is limited to the verified owner account; public registration is disabled in this app."
