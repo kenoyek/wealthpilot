@@ -2,7 +2,7 @@
 
 Live: https://wealthpilot-sand.vercel.app. Verified public registration is enabled; each user receives a separate private workspace. Android development and downloads are paused at the owner's request. See INSIGHTS.md for the insights phase and WEB_UPGRADE.md for the multi-user architecture; earlier sole-owner plans are historical.
 
-- Vercel: `prj_S96Tc0y5Ann9xvxuNnyQvGnoYgdw`, Node 24, the Insights release adds no schema migration. Deploy committed source with the existing web-only deployment script.
+- Vercel: `prj_S96Tc0y5Ann9xvxuNnyQvGnoYgdw`, Node 24, production deployment `dpl_WUfu85mSqBKB3gRXRLsuLBj6hFpo` READY from source `ce41624`. The Insights release adds no schema migration.
 - Neon: `steep-star-32189891`, branch `br-flat-sky-b5iwhifi`, `neondb`, AWS US East 2. Existing endpoint/Auth/Data API retained; no staging project or branch created.
 - Both incremental migrations applied transactionally after local tests and a hosted rollback validation. Original identity UUID preserved; repeat application skips recorded versions. No production financial test records inserted.
 - Production: PUBLIC_SIGNUP=true / PRIVATE_RELEASE=false. Previews remain private. Signup requires email verification via OTP; provider localhost access remains disabled and the existing production origin trusted.
