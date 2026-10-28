@@ -1458,3 +1458,12 @@ textarea:focus-visible {
   outline: 3px solid #72b89e;
   outline-offset: 3px;
 }
+
+.danger-zone {
+  border-top: 3px solid #923f32;
+}
+.account-deletion-form button {
+  background: #923f32;
+  border-color: #923f32;
+  color: #fff;
+}

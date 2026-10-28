@@ -16,6 +16,7 @@ const example = {
   NEON_DATA_API_URL:
     "https://ep-example.apirest.c-2.us-east-2.aws.neon.build/neondb/rest/v1",
   NEON_AUTH_COOKIE_SECRET: "synthetic-test-cookie-key-not-for-deployment",
+  WEALTHPILOT_SECURITY_SECRET: "ab".repeat(32),
 };
 describe("private release policy", () => {
   it("opens production only with both explicit public flags and requires verified sessions", () => {
@@ -131,7 +132,7 @@ describe("Neon deployment configuration checks", () => {
     }
   });
   it("rejects missing settings and local bindings", () => {
-    expect(productionProblems({})).toHaveLength(5);
+    expect(productionProblems({})).toHaveLength(6);
     expect(
       productionProblems({
         ...example,

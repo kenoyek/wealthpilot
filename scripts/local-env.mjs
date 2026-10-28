@@ -21,3 +21,6 @@ writeFileSync(
 console.log(
   "Local Supabase bindings written to ignored .env.local; no credentials printed.",
 );
+execFileSync(process.execPath, ["scripts/setup-security-local.mjs"], {
+  stdio: "inherit",
+});

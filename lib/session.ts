@@ -9,6 +9,7 @@ export const session = cache(async function session() {
     data: { user },
   } = await client.auth.getUser();
   if (!user) redirect("/login");
+  if (user.closed) redirect("/account/deletion");
   if (
     !sessionAllowed(
       user.email,

@@ -6,7 +6,12 @@ async function reset(f: FormData) {
   if (!neonConfigured()) redirect("/login");
   const password = String(f.get("password") || "");
   const token = String(f.get("token") || "");
-  if (password.length < 12 || !token || token.length > 2048)
+  if (
+    password.length < 12 ||
+    password.length > 128 ||
+    !token ||
+    token.length > 2048
+  )
     redirect("/login?error=Invalid%20password%20reset%20request.");
   const r = await neonAuth().resetPassword({ newPassword: password, token });
   if (r.error)

@@ -132,6 +132,70 @@ test("Neon SQL compatibility contract on an isolated local database", async (t) 
     `),
     );
     await t.test(
+      "Neon bounded imports and undo support the full 200-row batch",
+      () =>
+        sql(`
+      set test.neon_subject='verified-neon-owner-subject';set role authenticated;
+      do $$declare aid uuid;c uuid;rows jsonb;result jsonb;b uuid;denied boolean:=false;begin
+        aid:=public.create_account('Bulk native fixture','NGN','personal','0');
+        select id into c from public.categories where kind='expense' and scope='personal' limit 1;
+        select jsonb_agg(jsonb_build_object('kind','expense','date',(now() at time zone 'Africa/Lagos')::date,'amount','0.01','category',c,'reference','native-bulk-'||n,'description','Bulk')) into rows from generate_series(1,200) n;
+        result:=public.import_transactions(gen_random_uuid(),aid,rows,false);
+        if (result->>'imported')::int<>200 then raise exception 'Full batch not imported';end if;
+        select id into b from public.import_batches where account_id=aid;
+        perform public.undo_import(gen_random_uuid(),b,(now() at time zone 'Africa/Lagos')::date);
+        if (select balance::numeric from public.account_balances where id=aid)<>0 then raise exception 'Bulk undo did not reconcile';end if;
+        begin perform public.post_entry(gen_random_uuid(),'expense',aid,'1',current_date,'Manual',c);exception when others then denied:=true;end;
+        if not denied then raise exception 'Manual throttle was bypassed';end if;
+      end$$;reset role;
+    `),
+    );
+    await t.test(
+      "Neon closed identities block old JWTs and can finalize only after provider deletion",
+      () =>
+        sql(`
+      insert into security_private.config values(true,decode(repeat('cd',32),'hex'));
+      insert into neon_auth."user" values('deletion-fixture',true);
+      set test.neon_subject='deletion-fixture';
+      select set_config('test.delete_owner',public.ensure_application_user()::text,false);
+      select set_config('test.issued',floor(extract(epoch from clock_timestamp()))::bigint::text,false);
+      select set_config('test.nonce',gen_random_uuid()::text,false);
+      select set_config('test.signature',encode(security_private.hmac_sha256('purge:'||current_setting('test.delete_owner')||':'||current_setting('test.issued')||':'||current_setting('test.nonce')),'hex'),false);
+      select set_config('test.export_nonce',gen_random_uuid()::text,false);
+      select set_config('test.export_signature',encode(security_private.hmac_sha256('export:'||current_setting('test.delete_owner')||':'||current_setting('test.issued')||':'||current_setting('test.export_nonce')),'hex'),false);
+      set role authenticated;
+      do $$declare aid uuid;begin
+        aid:=public.create_account('Delete fixture','NGN','personal','10');
+        if (public.export_my_workspace(current_setting('test.delete_owner')::uuid,current_setting('test.issued')::bigint,current_setting('test.export_nonce')::uuid,current_setting('test.export_signature'))::jsonb->'record_counts'->>'accounts')::int<>1 then raise exception 'Native export failed';end if;
+        perform public.purge_my_workspace(current_setting('test.delete_owner')::uuid,current_setting('test.issued')::bigint,current_setting('test.nonce')::uuid,current_setting('test.signature'));
+        if app_private.current_user_id() is not null then raise exception 'Closed identity retained financial access';end if;
+        if not(public.account_state()->>'closed')::boolean then raise exception 'Closed identity status lost';end if;
+        perform public.ensure_application_user();
+        if exists(select 1 from public.profiles) then raise exception 'Closed workspace resurrected';end if;
+        begin perform public.create_account('Forbidden resurrection','NGN','personal');raise exception 'Unexpected success';exception when others then if sqlerrm='Unexpected success' then raise;end if;end;
+      end$$;reset role;
+      select set_config('test.nonce',gen_random_uuid()::text,false);
+      select set_config('test.signature',encode(security_private.hmac_sha256('finish:'||current_setting('test.delete_owner')||':'||current_setting('test.issued')||':'||current_setting('test.nonce')),'hex'),false);
+      set role authenticated;
+      do $$declare denied boolean:=false;begin
+        begin perform public.finish_account_deletion(current_setting('test.delete_owner')::uuid,current_setting('test.issued')::bigint,current_setting('test.nonce')::uuid,current_setting('test.signature'));exception when others then denied:=true;end;
+        if not denied then raise exception 'Finalization accepted an active provider identity';end if;
+      end$$;reset role;
+      delete from neon_auth."user" where id='deletion-fixture';
+      set role authenticated;
+      select public.finish_account_deletion(current_setting('test.delete_owner')::uuid,current_setting('test.issued')::bigint,current_setting('test.nonce')::uuid,current_setting('test.signature'));
+      reset role;
+      do $$begin
+        if exists(select 1 from app_private.identities where subject='deletion-fixture') then raise exception 'Identity cleanup incomplete';end if;
+      end$$;
+      set role authenticated;
+      do $$declare denied boolean:=false;begin
+        begin perform public.ensure_application_user();exception when others then denied:=true;end;
+        if not denied then raise exception 'Deleted provider identity was re-created';end if;
+      end$$;reset role;
+    `),
+    );
+    await t.test(
       "anonymous role cannot read financial data or call financial RPCs",
       () =>
         sql(`

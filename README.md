@@ -89,3 +89,11 @@ Schedules require explicit confirmation; they never post automatically. CSV
 imports use the downloadable template, a duplicate-aware preview, atomic
 confirmation and grouped undo with journal reversals. See
 [everyday money rules and rollout](docs/EVERYDAY_MONEY.md).
+
+### Account controls
+
+Settings includes a password-confirmed full JSON/gzip export, all-device sign-out,
+and explicit account deletion. See [security behavior and limitations](docs/ACCOUNT_SECURITY.md).
+After local migrations run `node scripts/setup-security-local.mjs`; fresh
+`npm run env:local` also performs that setup. Never print or commit its capability
+key. Production setup uses the reviewed migration and encrypted-binding helpers.

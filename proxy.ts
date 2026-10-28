@@ -16,6 +16,8 @@ export async function proxy(request: NextRequest) {
         "/reports",
         "/insights",
         "/settings",
+        "/account",
+        "/api/account",
         "/api/export",
       ].some((p) => path === p || path.startsWith(p + "/"))
     )

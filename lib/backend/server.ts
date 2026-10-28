@@ -23,6 +23,7 @@ export interface AppUser {
   email?: string;
   email_confirmed_at?: string;
   email_verified?: boolean;
+  closed?: boolean;
 }
 interface AppAuth {
   getUser(): Promise<Result<{ user: AppUser | null }>>;
@@ -91,6 +92,17 @@ export const db = cache(async function db() {
             Boolean(r.data.user.email_confirmed_at),
           )
         ) {
+          const state = await data.rpc("account_state");
+          if (state.error)
+            return {
+              data: { user: null },
+              error: { message: "Unable to load account state." },
+            };
+          if (state.data?.closed)
+            return {
+              data: { user: { ...r.data.user, closed: true } },
+              error: null,
+            };
           const init = await data.rpc("initialize_workspace");
           if (init.error)
             return {
@@ -144,9 +156,16 @@ export const db = cache(async function db() {
             message: "Unable to prepare your verified workspace. Please retry.",
           },
         };
+      const state = await data.rpc("account_state");
+      if (state.error)
+        return {
+          data: { user: null },
+          error: { message: "Unable to load account state." },
+        };
       return {
         data: {
           user: {
+            closed: Boolean(state.data?.closed),
             id: String(identity.data),
             email: native.email,
             email_verified: native.emailVerified,

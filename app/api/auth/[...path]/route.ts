@@ -4,8 +4,16 @@ async function handle(request: Request, context: Context) {
   if (!neonConfigured())
     return new Response("Authentication is not configured.", { status: 503 });
   const { path } = await context.params;
-  if (path[0] === "admin" || path[0] === "sign-up")
-    return new Response("Owner invitation required.", { status: 403 });
+  // Credential and account mutations use authenticated, validated server actions.
+  const route = path.join("/");
+  const allowed =
+    request.method === "GET"
+      ? ["get-session", "jwks"]
+      : ["sign-out", "get-access-token", "refresh-token"];
+  if (!allowed.includes(route))
+    return new Response("Use the account forms on WealthPilot.", {
+      status: 403,
+    });
   const handlers = neonAuth().handler();
   return request.method === "GET"
     ? handlers.GET(request, context)

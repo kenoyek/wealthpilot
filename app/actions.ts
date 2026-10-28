@@ -8,6 +8,7 @@ import { neonAuth, neonConfigured } from "@/lib/backend/neon-auth";
 import { authRequestAllowed } from "@/lib/auth-requests";
 import { session } from "@/lib/session";
 import { amount, monthBounds } from "@/lib/money";
+import { confirmPassword } from "@/lib/account-security";
 import {
   privateRelease,
   ownerSetupAllowed,
@@ -106,9 +107,19 @@ export async function recover(f: FormData) {
   );
 }
 export async function changePassword(f: FormData) {
-  const { client } = await session();
+  const identity = await session();
+  const { client } = identity;
   const password = field(f, "password");
-  if (password.length < 12) fail("/settings", "Use at least 12 characters.");
+  if (password.length < 12 || password.length > 128)
+    fail("/settings", "Use 12 to 128 characters.");
+  try {
+    await confirmPassword(field(f, "currentPassword"), identity);
+  } catch {
+    fail(
+      "/settings",
+      "Current password could not be verified, or the security attempt limit was reached.",
+    );
+  }
   const { error } = await client.auth.updateUser({
     password,
     currentPassword: field(f, "currentPassword"),

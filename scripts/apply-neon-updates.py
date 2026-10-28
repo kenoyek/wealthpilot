@@ -30,7 +30,7 @@ def main():
         history = {r["version"]: r for r in sql({"query":"select version,to_jsonb(m)->>'checksum' as checksum from app_private.schema_migrations m", "params":[]})["rows"]}
     queries = [{"query":"create table if not exists app_private.schema_migrations(version text primary key,checksum text,applied_at timestamptz not null default now())", "params":[]}, {"query":"alter table app_private.schema_migrations add column if not exists checksum text", "params":[]}, {"query":"revoke all on app_private.schema_migrations from public,anonymous,authenticated", "params":[]}]
     applied = []
-    for relative in ["supabase/migrations/202610260012_workspace_experience.sql", "neon/incremental/202610260013_multi_user.sql", "supabase/migrations/202610280014_everyday_money.sql"]:
+    for relative in ["supabase/migrations/202610260012_workspace_experience.sql", "neon/incremental/202610260013_multi_user.sql", "supabase/migrations/202610280014_everyday_money.sql", "supabase/migrations/202610280015_account_security.sql", "neon/incremental/202610280016_account_security.sql", "supabase/migrations/202610280017_bounded_imports.sql"]:
         file = ROOT / relative
         source = file.read_text()
         digest = hashlib.sha256(source.encode()).hexdigest()

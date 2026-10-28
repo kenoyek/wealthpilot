@@ -67,6 +67,8 @@ export function productionProblems(env) {
     issues.push(
       "Do not configure legacy local Supabase bindings on the Neon production deployment.",
     );
+  if (!/^[0-9a-f]{64}$/.test(env.WEALTHPILOT_SECURITY_SECRET || ""))
+    issues.push("Configure the server-only account security capability key.");
   return issues;
 }
 if (

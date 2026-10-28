@@ -1,9 +1,10 @@
 import Link from "next/link";
-import { usesNeon } from "@/lib/backend/server";
 import Shell, { Notice } from "@/components/shell";
 import { baseData } from "@/lib/data";
 import { currencies } from "@/lib/money";
 import { preferences, changePassword } from "../actions";
+import { signOutAll } from "@/app/account/actions";
+import { SubmitButton } from "@/components/submit-button";
 export default async function Settings({
   searchParams,
 }: {
@@ -75,28 +76,29 @@ export default async function Settings({
         <section className="panel">
           <h2>Account security</h2>
           <form action={changePassword}>
-            {usesNeon() && (
-              <label>
-                Current password
-                <input
-                  name="currentPassword"
-                  type="password"
-                  autoComplete="current-password"
-                  required
-                />
-              </label>
-            )}
+            <label>
+              Current password
+              <input
+                name="currentPassword"
+                type="password"
+                autoComplete="current-password"
+                required
+              />
+            </label>
             <label>
               New password
               <input
                 name="password"
                 type="password"
                 minLength={12}
+                maxLength={128}
                 autoComplete="new-password"
                 required
               />
             </label>
-            <button className="secondary">Update password</button>
+            <SubmitButton secondary pendingLabel="Updating password…">
+              Update password
+            </SubmitButton>
           </form>
           <p className="muted fine">
             After following a recovery link, set your new password here. Your
@@ -104,6 +106,84 @@ export default async function Settings({
           </p>
         </section>
       </div>
+      <section className="panel" id="data">
+        <h2>Your complete data export</h2>
+        <p>
+          Download all workspace records: accounts, the full journal,
+          categories, budgets, planning records, recurring schedules, imports
+          and audit history. Decimal amounts are strings so precision is
+          preserved. Passwords, codes and session tokens are excluded.
+        </p>
+        <form action="/api/account/export" method="post">
+          <div className="form-row">
+            <label>
+              Current password for export
+              <input
+                name="currentPassword"
+                type="password"
+                autoComplete="current-password"
+                minLength={12}
+                maxLength={128}
+                required
+              />
+            </label>
+            <label>
+              Download format
+              <select aria-label="Download format" name="format">
+                <option value="json">JSON</option>
+                <option value="gzip">Compressed JSON (.json.gz)</option>
+              </select>
+            </label>
+          </div>
+          <button>Download complete export</button>
+        </form>
+        <p className="fine muted">
+          Keep the downloaded file private. Larger exports are compressed
+          automatically; an export that exceeds the transport limit fails
+          explicitly rather than omitting records. Monthly CSV statements remain
+          available in Reports.
+        </p>
+      </section>
+      <section className="panel">
+        <h2>Sign out all devices</h2>
+        <p>
+          Revoke all device sessions, including this one. You will need to sign
+          in again. Security confirmations are limited across server instances
+          to five attempts per 15-minute window.
+        </p>
+        <form action={signOutAll}>
+          <label>
+            Current password for session revocation
+            <input
+              name="currentPassword"
+              type="password"
+              autoComplete="current-password"
+              minLength={12}
+              maxLength={128}
+              required
+            />
+          </label>
+          <SubmitButton secondary pendingLabel="Revoking sessions…">
+            Sign out all devices
+          </SubmitButton>
+        </form>
+        <p className="fine muted">
+          App session metadata may be cached for up to 30 seconds. An
+          already-issued direct Data API token may remain valid until it
+          expires; closing an account also blocks those tokens at the workspace
+          identity layer.
+        </p>
+      </section>
+      <section className="panel danger-zone">
+        <h2>Delete account</h2>
+        <p>
+          Permanently remove your workspace and sign-in identity. Download an
+          export first if you want a copy.
+        </p>
+        <Link className="button secondary" href="/account/deletion">
+          Review account deletion
+        </Link>
+      </section>
     </Shell>
   );
 }

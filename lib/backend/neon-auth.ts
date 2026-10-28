@@ -14,7 +14,10 @@ export function neonAuth() {
     );
   return createNeonAuth({
     baseUrl: process.env.NEON_AUTH_BASE_URL!,
-    cookies: { secret: process.env.NEON_AUTH_COOKIE_SECRET! },
+    cookies: {
+      secret: process.env.NEON_AUTH_COOKIE_SECRET!,
+      sessionDataTtl: 30,
+    },
     logLevel: "silent",
   });
 }
