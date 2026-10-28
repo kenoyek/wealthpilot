@@ -12,7 +12,7 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run tests/*.test.ts",
-    "test:db": "node --env-file=.env.local --test tests/database.test.mjs tests/planning.test.mjs",
+    "test:db": "node --env-file=.env.local --test tests/database.test.mjs tests/planning.test.mjs tests/everyday.test.mjs",
     "test:e2e": "playwright test",
     "db:start": "bash scripts/prepare-local-db.sh && node scripts/supabase.mjs start -x studio,imgproxy,edge-runtime,logflare,vector,supavisor,realtime,storage-api,postgres-meta",
     "db:reset": "node scripts/supabase.mjs db reset",

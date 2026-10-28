@@ -63,6 +63,10 @@ export default async function Transactions({
       subtitle="Every inflow, outflow and move in between."
     >
       <Notice error={q.error} notice={q.notice} />
+      <div className="quick-actions">
+        <Link href="/transactions/recurring">Recurring schedules ↗</Link>
+        <Link href="/transactions/import">Import CSV ↗</Link>
+      </div>
       <details className="panel entry-panel" id="new" open>
         <summary>
           Record a transaction <span>＋</span>

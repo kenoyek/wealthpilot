@@ -1424,3 +1424,37 @@ aside nav {
     gap: 6px;
   }
 }
+
+textarea {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-height: 120px;
+  margin-top: 7px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--panel);
+  color: var(--ink);
+  font: 13px/1.6 monospace;
+  resize: vertical;
+}
+textarea:focus-visible {
+  outline: 3px solid #72b89e;
+  outline-offset: 3px;
+}
+.import-preview {
+  margin: 24px 0;
+}
+.transaction-fields > .secondary {
+  margin-left: 10px;
+}
+@media (max-width: 650px) {
+  textarea {
+    font-size: 16px;
+  }
+}
+.table-wrap:focus-visible {
+  outline: 3px solid #72b89e;
+  outline-offset: 3px;
+}

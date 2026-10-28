@@ -103,6 +103,35 @@ test("Neon SQL compatibility contract on an isolated local database", async (t) 
     `),
     );
     await t.test(
+      "Neon recurring and import RPCs preserve exact balances and duplicate protection",
+      () =>
+        sql(`
+      set test.neon_subject='verified-neon-owner-subject';set role authenticated;
+      do $$declare aid uuid;c uuid;sid uuid;rev uuid;k uuid:=gen_random_uuid();payload jsonb;result jsonb;batch uuid;begin
+        aid:=public.create_account('Everyday Neon fixture','NGN','personal','100');
+        select id into c from public.categories where kind='expense' and scope='personal' limit 1;
+        sid:=public.save_recurring(gen_random_uuid(),jsonb_build_object('account',aid,'category',c,'name','Neon schedule','kind','expense','amount','0.10','cadence','monthly','date','2024-01-31'));
+        select revision into rev from public.recurring_templates where id=sid;
+        perform public.resolve_recurring(k,sid,rev,'2024-01-31',(now() at time zone 'Africa/Lagos')::date);
+        perform public.resolve_recurring(k,sid,rev,'2024-01-31',(now() at time zone 'Africa/Lagos')::date);
+        if (select next_due from public.recurring_templates where id=sid)<>'2024-02-29'::date then raise exception 'Neon recurrence anchor failed';end if;
+        payload:=jsonb_build_array(jsonb_build_object('date',(now() at time zone 'Africa/Lagos')::date,'kind','expense','amount','0.20','description','Native import','reference','native-ref','category',c));
+        result:=public.import_transactions(gen_random_uuid(),aid,payload,false);
+        if (result->>'imported')::integer<>1 then raise exception 'Native import failed';end if;
+        result:=public.import_transactions(gen_random_uuid(),aid,payload,false);
+        if (result->>'skipped')::integer<>1 then raise exception 'Native dedupe failed';end if;
+        if (select balance::numeric from public.account_balances where id=aid)<>99.70 then raise exception 'Native cash reconciliation failed';end if;
+        select id into batch from public.import_batches where account_id=aid and imported=1;
+        perform public.undo_import(gen_random_uuid(),batch,(now() at time zone 'Africa/Lagos')::date);
+        if (select balance::numeric from public.account_balances where id=aid)<>99.90 then raise exception 'Native undo failed';end if;
+      end$$;reset role;
+      set test.neon_subject='second-user';set role authenticated;
+      do $$begin
+        if exists(select 1 from public.recurring_values) or exists(select 1 from public.import_rows) or exists(select 1 from public.import_batches) or exists(select 1 from public.recurring_occurrences) then raise exception 'Native everyday isolation failed';end if;
+      end$$;reset role;
+    `),
+    );
+    await t.test(
       "anonymous role cannot read financial data or call financial RPCs",
       () =>
         sql(`

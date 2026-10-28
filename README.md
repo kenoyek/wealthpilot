@@ -81,3 +81,11 @@ See [docs/WEB_UPGRADE.md](docs/WEB_UPGRADE.md) for the current public-registrati
 equal-day month comparisons and in-app budget alerts. Currency and scope filters
 keep balances separate. Forecast assumptions stay on the page and do not post
 transactions. See [calculation rules and validation](docs/INSIGHTS.md).
+
+### Everyday money tools
+
+Transactions now links to recurring income/expense schedules and CSV import.
+Schedules require explicit confirmation; they never post automatically. CSV
+imports use the downloadable template, a duplicate-aware preview, atomic
+confirmation and grouped undo with journal reversals. See
+[everyday money rules and rollout](docs/EVERYDAY_MONEY.md).

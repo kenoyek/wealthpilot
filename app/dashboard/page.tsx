@@ -15,17 +15,25 @@ export default async function Dashboard({
 }: {
   searchParams: Promise<{ month?: string; scope?: string }>;
 }) {
-  const { accounts, categories, profile, positions } = await cashData();
+  const { client, accounts, categories, profile, positions } = await cashData();
   const q = await searchParams;
   const month = q.month || localMonth(profile?.timezone);
   const scope = ["personal", "business"].includes(q.scope || "")
     ? q.scope!
     : "all";
   const today = localDate(profile?.timezone);
-  const [rows, budgets] = await Promise.all([
+  const [rows, budgets, recurring] = await Promise.all([
     journal(month, scope),
     month === today.slice(0, 7) ? monthlyBudgets(month) : Promise.resolve([]),
+    client
+      .from("recurring_values")
+      .select("id")
+      .eq("active", true)
+      .lte("next_due", today)
+      .limit(200),
   ]);
+  if (recurring.error)
+    throw new Error("Unable to load recurring reminders. Please retry.");
   const currency = profile?.currency || "NGN";
   const total = totals(rows, currency);
   const selected = accounts.filter(
@@ -123,6 +131,14 @@ export default async function Dashboard({
         <Link href="/insights">Insights & forecasts ↗</Link>
       </div>
       <Filters month={month} scope={scope} />
+      {!!recurring.data?.length && (
+        <p className="notice">
+          <Link href="/transactions/recurring">
+            {recurring.data.length} recurring schedule(s) ready to review →
+          </Link>{" "}
+          Confirm only payments that actually happened.
+        </p>
+      )}
       <BudgetAlerts
         budgets={budgets.filter(
           (b) =>

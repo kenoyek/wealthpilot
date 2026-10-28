@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Apply reviewed additive web/multi-user migrations atomically. Never reset a database."""
+"""Apply the explicit reviewed additive migrations atomically. Never reset a database."""
 import argparse, hashlib, json, os, pathlib, sys, urllib.request, urllib.parse, urllib.error
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / ".tools/python"))
@@ -22,6 +22,7 @@ def main():
         request = urllib.request.Request(SQL_URL, data=json.dumps(payload).encode(), headers={"Content-Type": "application/json", "Neon-Connection-String": uri, "Neon-Batch-Isolation-Level": "Serializable"})
         with urllib.request.urlopen(request, timeout=60) as response: return json.load(response)
     before = sql({"query":"select id::text,subject from app_private.identities order by subject", "params":[]})["rows"]
+    counts_before = sql({"query":"select (select count(*) from public.accounts)::text as accounts,(select count(*) from public.entries)::text as entries,(select count(*) from public.lines)::text as lines", "params":[]})["rows"][0]
     exists = sql({"query":"select to_regclass('app_private.schema_migrations') is not null as present", "params":[]})["rows"][0]["present"]
     history = {}
     if exists:
@@ -29,7 +30,7 @@ def main():
         history = {r["version"]: r for r in sql({"query":"select version,to_jsonb(m)->>'checksum' as checksum from app_private.schema_migrations m", "params":[]})["rows"]}
     queries = [{"query":"create table if not exists app_private.schema_migrations(version text primary key,checksum text,applied_at timestamptz not null default now())", "params":[]}, {"query":"alter table app_private.schema_migrations add column if not exists checksum text", "params":[]}, {"query":"revoke all on app_private.schema_migrations from public,anonymous,authenticated", "params":[]}]
     applied = []
-    for relative in ["supabase/migrations/202610260012_workspace_experience.sql", "neon/incremental/202610260013_multi_user.sql"]:
+    for relative in ["supabase/migrations/202610260012_workspace_experience.sql", "neon/incremental/202610260013_multi_user.sql", "supabase/migrations/202610280014_everyday_money.sql"]:
         file = ROOT / relative
         source = file.read_text()
         digest = hashlib.sha256(source.encode()).hexdigest()
@@ -57,5 +58,7 @@ def main():
     after = sql({"query":"select id::text,subject from app_private.identities order by subject", "params":[]})["rows"]
     after_ids = {row["subject"]: row["id"] for row in after}
     if any(after_ids.get(row["subject"]) != row["id"] for row in before): raise SystemExit("Identity preservation check failed; investigate before enabling registration")
-    print(json.dumps({"applied":applied,"existing_identity_uuids_preserved":True}))
+    counts_after = sql({"query":"select (select count(*) from public.accounts)::text as accounts,(select count(*) from public.entries)::text as entries,(select count(*) from public.lines)::text as lines", "params":[]})["rows"][0]
+    if any(int(counts_after[k]) < int(counts_before[k]) for k in counts_before): raise SystemExit("Financial record preservation check failed; investigate before deployment")
+    print(json.dumps({"applied":applied,"existing_identity_uuids_preserved":True,"existing_financial_records_preserved":True}))
 if __name__ == "__main__": main()
