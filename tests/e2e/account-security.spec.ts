@@ -63,6 +63,25 @@ test("complete export, security confirmations, session revocation and explicit a
     ).amount,
   ).toBe("1234.56000000");
   expect(JSON.stringify(data)).not.toContain(password);
+  for (const width of [320, 390, 650]) {
+    await page.setViewportSize({ width, height: 844 });
+    await page.evaluate(() => scrollTo(0, 0));
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true);
+    await expect(
+      page.getByRole("link", { name: "Settings", exact: true }),
+    ).toBeInViewport({ ratio: 1 });
+    await expect(
+      page.getByRole("button", { name: "Sign out", exact: true }),
+    ).toBeInViewport({ ratio: 1 });
+  }
+  await page.screenshot({
+    path: ".tools/account-settings-mobile.png",
+    fullPage: true,
+  });
   await page
     .getByRole("link", { name: "Review account deletion", exact: true })
     .click();
