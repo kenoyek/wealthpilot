@@ -7,6 +7,9 @@ import { journal, localMonth } from "@/lib/data";
 import { cashData } from "@/lib/planning-data";
 import { formatMoney, sum } from "@/lib/money";
 import { totals, categorySpending, cashMovement } from "@/lib/summary";
+import { BudgetAlerts } from "@/components/budget-alerts";
+import { monthlyBudgets } from "@/lib/insights-data";
+import { localDate } from "@/lib/data";
 export default async function Dashboard({
   searchParams,
 }: {
@@ -18,7 +21,11 @@ export default async function Dashboard({
   const scope = ["personal", "business"].includes(q.scope || "")
     ? q.scope!
     : "all";
-  const rows = await journal(month, scope);
+  const today = localDate(profile?.timezone);
+  const [rows, budgets] = await Promise.all([
+    journal(month, scope),
+    month === today.slice(0, 7) ? monthlyBudgets(month) : Promise.resolve([]),
+  ]);
   const currency = profile?.currency || "NGN";
   const total = totals(rows, currency);
   const selected = accounts.filter(
@@ -113,8 +120,24 @@ export default async function Dashboard({
         </Link>
         <Link href="/planning/goals">Set a goal ↗</Link>
         <Link href="/reports">Explore reports ↗</Link>
+        <Link href="/insights">Insights & forecasts ↗</Link>
       </div>
       <Filters month={month} scope={scope} />
+      <BudgetAlerts
+        budgets={budgets.filter(
+          (b) =>
+            b.currency === currency &&
+            categories.some(
+              (c) =>
+                c.id === b.category_id &&
+                (scope === "all" || c.scope === scope),
+            ),
+        )}
+        rows={rows}
+        categories={categories}
+        today={today}
+        enabled={profile?.planning_alerts !== false}
+      />
       <section className="welcome">
         <div>
           <p className="eyebrow">PROTECT YOUR NEXT 30 DAYS</p>

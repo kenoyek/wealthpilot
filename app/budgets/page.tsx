@@ -1,5 +1,6 @@
 import Shell, { Notice, Empty } from "@/components/shell";
-import { baseData, journal, localMonth } from "@/lib/data";
+import { baseData, journal, localMonth, localDate } from "@/lib/data";
+import { BudgetAlerts } from "@/components/budget-alerts";
 import { currencies, formatMoney } from "@/lib/money";
 import { categorySpending } from "@/lib/summary";
 import { saveBudget } from "../actions";
@@ -10,7 +11,8 @@ export default async function Budgets({
 }) {
   const { client, categories, profile } = await baseData();
   const month = localMonth(profile?.timezone);
-  const rows = await journal(month);
+  const today = localDate(profile?.timezone);
+  const rows = (await journal(month)).filter((r) => r.effective_date <= today);
   const { data: budgets, error } = await client
     .from("budget_values")
     .select("*")
@@ -24,6 +26,13 @@ export default async function Budgets({
       subtitle="Give your spending a direction, without losing flexibility."
     >
       <Notice {...await searchParams} />
+      <BudgetAlerts
+        budgets={budgets || []}
+        rows={rows}
+        categories={categories}
+        today={today}
+        enabled={profile?.planning_alerts !== false}
+      />
       <div className="two-col">
         <section className="panel">
           <h2>This month · {month}</h2>

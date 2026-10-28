@@ -74,3 +74,10 @@ Android private builds and signing are documented in [android/README.md](android
 ## Multi-user web release
 
 See [docs/WEB_UPGRADE.md](docs/WEB_UPGRADE.md) for the current public-registration architecture, UX/performance changes, migration evidence and remaining operational limits. Production opens verified registration only with both `WEALTHPILOT_PUBLIC_SIGNUP=true` and `WEALTHPILOT_PRIVATE_RELEASE=false`; previews remain private. New verified users receive isolated workspaces automatically. Run `python3 scripts/deploy-vercel.py --web-only` for web deployment with Android downloads paused. No APK rebuild is required.
+
+### Insights and planning
+
+`/insights` includes adjustable 30-day cash-flow scenarios, recorded spending trends,
+equal-day month comparisons and in-app budget alerts. Currency and scope filters
+keep balances separate. Forecast assumptions stay on the page and do not post
+transactions. See [calculation rules and validation](docs/INSIGHTS.md).

@@ -75,8 +75,17 @@ export function localDate(timezone = "Africa/Lagos") {
     .join("-");
 }
 export async function journal(month: string, scope = "all") {
+  return journalWindow(month, month, scope);
+}
+export async function journalWindow(
+  firstMonth: string,
+  lastMonth: string,
+  scope = "all",
+) {
   const { client } = await session();
-  const { start, end } = monthBounds(month);
+  const { start } = monthBounds(firstMonth);
+  const { end } = monthBounds(lastMonth);
+  if (start >= end) throw new Error("Choose a valid period.");
   const cutoff = new Date().toISOString();
   let query = client
     .from("journal")

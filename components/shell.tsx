@@ -9,6 +9,7 @@ import {
   LogOut,
   Plus,
   Compass,
+  Lightbulb,
 } from "lucide-react";
 import { signout } from "@/app/actions";
 const nav = [
@@ -18,6 +19,7 @@ const nav = [
   ["/budgets", "Budgets", PieChart],
   ["/planning", "Planning", Compass],
   ["/reports", "Reports", ChartNoAxesCombined],
+  ["/insights", "Insights", Lightbulb],
   ["/settings", "Settings", SlidersHorizontal],
 ] as const;
 export default function Shell({

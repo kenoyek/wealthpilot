@@ -1342,3 +1342,85 @@ aside nav {
 .funding-fields {
   display: contents;
 }
+
+.forecast-breakdown {
+  margin: 12px 0 24px;
+}
+.forecast-breakdown > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+.forecast-breakdown dt {
+  color: var(--muted);
+}
+.forecast-breakdown dd {
+  margin: 0;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+.forecast-breakdown .forecast-result {
+  font-weight: 700;
+  font-size: 17px;
+}
+.insight-alert-list {
+  list-style: none;
+  padding: 0;
+  margin: 12px 0;
+}
+.insight-alert-list li {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+.insight-alert-list p {
+  margin: 5px 0 0;
+  font-size: 12px;
+}
+.budget-alerts {
+  border-top: 3px solid #bb853c;
+}
+.trend-chart {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 12px;
+  margin: 24px 0;
+}
+.trend-column {
+  text-align: center;
+  font-size: 12px;
+}
+.trend-column small {
+  display: block;
+  color: var(--muted);
+}
+.trend-bar-space {
+  height: 150px;
+  display: flex;
+  align-items: end;
+  justify-content: center;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 8px;
+}
+.trend-bar {
+  width: 70%;
+  max-width: 75px;
+  background: #90af8d;
+  border-radius: 6px 6px 0 0;
+}
+.trend-bar.current {
+  background: var(--green);
+}
+@media (max-width: 650px) {
+  .forecast-breakdown > div {
+    font-size: 12px;
+    gap: 10px;
+  }
+  .forecast-breakdown .forecast-result {
+    font-size: 14px;
+  }
+  .trend-chart {
+    gap: 6px;
+  }
+}

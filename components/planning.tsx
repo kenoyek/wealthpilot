@@ -8,6 +8,7 @@ export function PlanningNav() {
   return (
     <nav className="planning-tabs" aria-label="Financial planning">
       <Link href="/planning">Cash & reminders</Link>
+      <Link href="/insights">Insights & forecasts</Link>
       <Link href="/planning/goals">Savings goals</Link>
       <Link href="/planning/allocate">Income allocation</Link>
       <Link href="/planning/commitments">Bills & subscriptions</Link>
